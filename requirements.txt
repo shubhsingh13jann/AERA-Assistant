@@ -1,0 +1,8 @@
+faster-whisper
+openwakeword
+pyautogui
+pygetwindow
+pyttsx3
+ollama
+PyQt6
+playwright

@@ -6,3 +6,4 @@ pyttsx3
 ollama
 PyQt6
 playwright
+pywebview

@@ -1,33 +1,39 @@
 """
-PyQt6 main window - always-on-top overlay hosting the orb and the
-conversation panel. This is the entry point stub; full build is the
-next step once the wake word + STT loop is solid.
+Desktop shell for the React UI, using pywebview instead of Electron -
+loads the built Vite app (signal-ui/dist/index.html) into a native
+window. No Node runtime, no Chromium bundle, no separate backend
+server: Python talks straight to the page via evaluate_js.
 
-pip install PyQt6
+pip install pywebview
+Build the frontend first: cd signal-ui && npm run build
 """
 
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QApplication, QHBoxLayout, QMainWindow, QWidget
+import os
+import webview
 
-from ui.orb_widget import OrbWidget
-from ui.conversation_widget import ConversationWidget
+DIST_PATH = os.path.join(os.path.dirname(__file__), "..", "signal-ui", "dist", "index.html")
 
-
-class SignalOverlay(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.FramelessWindowHint)
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-
-        central = QWidget()
-        layout = QHBoxLayout(central)
-        layout.addWidget(OrbWidget())
-        layout.addWidget(ConversationWidget())
-        self.setCentralWidget(central)
+_window = None
 
 
-def run():
-    app = QApplication([])
-    window = SignalOverlay()
-    window.show()
-    app.exec()
+def start_ui(assistant_main):
+    """
+    assistant_main: the blocking wake-word/STT/router loop. pywebview
+    runs it on a background thread automatically via func=, so the GUI
+    event loop and the audio loop don't fight over the main thread -
+    same problem PyQt6 would have had, solved the same way.
+    """
+    global _window
+    _window = webview.create_window("Signal", DIST_PATH, width=760, height=460)
+    webview.start(assistant_main, _window)
+
+
+def set_orb_state(state: str) -> None:
+    if _window:
+        _window.evaluate_js(f"window.setOrbState('{state}')")
+
+
+def add_message(role: str, text: str) -> None:
+    if _window:
+        safe_text = text.replace("'", "\\'")
+        _window.evaluate_js(f"window.addMessage('{role}', '{safe_text}')")

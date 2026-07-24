@@ -22,3 +22,5 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+"signal-ui/node_modules/" 
+"signal-ui/dist/" 

@@ -1,16 +1,27 @@
 """
-Entry point - wires wake word -> STT -> intent router -> voice reply
-together. Run this to start the assistant.
+Entry point - launches the Signal desktop UI (pywebview + React) and
+runs the wake word -> record -> STT -> intent router -> voice reply
+loop on a background thread.
 """
 
 import logging
+""" import os
+import nvidia.cublas.lib
+import nvidia.cudnn.lib
+
+os.environ["PATH"] = (
+    os.path.dirname(nvidia.cublas.lib.__file__) + os.pathsep +
+    os.path.dirname(nvidia.cudnn.lib.__file__) + os.pathsep +
+    os.environ["PATH"]
+) """
 
 from wakeword.listener import listen_for_wake_word
-from stt.transcriber import transcribe
+from stt.transcriber import record_audio, transcribe
 from intents.router import route
 from voice.speaker import speak
 from storage.db import init_db, log_message
-from ui.overlay import set_orb_state, add_message, start_ui
+from ui.overlay import start_ui, set_orb_state, add_message
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s  %(message)s", datefmt="%H:%M:%S")
 log = logging.getLogger("signal")
@@ -18,11 +29,14 @@ log = logging.getLogger("signal")
 
 def on_wake():
     set_orb_state("listening")
+    log.info("wake word detected, recording command...")
     audio_path = record_audio(seconds=4.0)
     heard = transcribe(audio_path)
     if not heard:
         set_orb_state("idle")
         return
+
+    log.info("YOU   > %s", heard)
     add_message("you", heard)
     log_message("you", heard)
 
@@ -34,15 +48,15 @@ def on_wake():
     set_orb_state("idle")
 
 
-def main():
-    init_db()
-    speak("signal online. mic armed.")
-    listen_for_wake_word(on_detected=on_wake)
-
 def run_assistant(window):
-    init_db()
-    speak("signal online. mic armed.")
-    listen_for_wake_word(on_detected=on_wake)
+    """Runs on pywebview's background thread - the window itself runs
+    on the main thread, so this blocking loop never freezes the UI."""
+    try:
+        init_db()
+        speak("signal online. mic armed.")
+        listen_for_wake_word(on_detected=on_wake)
+    except Exception:
+        log.exception("assistant thread crashed")
 
 
 if __name__ == "__main__":

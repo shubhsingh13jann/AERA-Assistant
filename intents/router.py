@@ -4,6 +4,7 @@ path, near-zero latency). Falls back to the local Ollama model only
 when nothing matches - for natural phrasing the regex table can't catch.
 """
 
+import re
 import logging
 
 from intents.rules import INTENTS
@@ -14,6 +15,7 @@ log = logging.getLogger("signal")
 
 def route(text: str) -> str:
     text = text.lower().strip()
+    text = re.sub(r"[.,!?]+$", "", text).strip()  # whisper adds trailing punctuation
     for intent in INTENTS:
         match = intent.pattern.search(text)
         if match:

@@ -22,13 +22,11 @@ CHUNK = 1280           # 80ms at 16kHz - the frame size openWakeWord expects
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 16000
-THRESHOLD = 0.35        # lowered from 0.5 - your headset peaks around 0.45-0.46
+THRESHOLD = 0.35        # lowered from 0.5 - headset peaks around 0.4-0.5
 
-# Set this to your headset's device index - confirmed working in test_mic.py
-DEVICE_INDEX = 2
+DEVICE_INDEX = 2        # your headset - confirmed working in test_mic.py
 
-# Dictionary key in the prediction result, NOT a filename.
-WAKE_KEY = "hey_jarvis"
+WAKE_KEY = "hey_jarvis"  # dictionary key in the prediction result, not a filename
 
 
 def listen_for_wake_word(on_detected):
@@ -39,7 +37,7 @@ def listen_for_wake_word(on_detected):
     log.info("checking openWakeWord models (downloads once, cached after)...")
     openwakeword.utils.download_models()
 
-    model = Model()  # loads every bundled pretrained model
+    model = Model()
     log.info("models loaded: %s", list(model.models.keys()))
 
     audio = pyaudio.PyAudio()
@@ -57,7 +55,7 @@ def listen_for_wake_word(on_detected):
             predictions = model.predict(chunk)
 
             frame_count += 1
-            if frame_count % 25 == 0:  # ~every 2 seconds, so you can see it's alive
+            if frame_count % 25 == 0:
                 log.info("listening... score: %.3f", predictions.get(WAKE_KEY, 0.0))
 
             score = predictions.get(WAKE_KEY, 0.0)
@@ -65,6 +63,11 @@ def listen_for_wake_word(on_detected):
                 log.info("wake word detected (score=%.3f)", score)
                 model.reset()
                 on_detected()
+                # Discard whatever got buffered while we were recording/
+                # speaking, so we don't immediately re-trigger on our own
+                # reply bleeding back into the mic.
+                stream.stop_stream()
+                stream.start_stream()
     finally:
         stream.stop_stream()
         stream.close()

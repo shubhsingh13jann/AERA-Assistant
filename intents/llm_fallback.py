@@ -1,29 +1,57 @@
 """
 Fallback intent parsing via a local Ollama model, for phrasing the
-regex table doesn't catch (e.g. "throw this to the side" instead of
-"snap left"). Only called when the fast regex path misses - keep the
-model small (llama3.2:3b / phi3:mini) so it stays responsive.
+regex table doesn't catch. Only called when the fast regex path
+misses.
 
-pip install ollama
+Critically: the model only decides WHICH action to call - it never
+touches the OS directly. This function parses its proposed call and
+dispatches to the same real action functions the regex path uses.
 """
+
+import re
+import logging
 
 import ollama
 
-SYSTEM_PROMPT = (
-    "You control a Windows desktop. Map the user's spoken command to one "
-    "of: open_app(name), snap_window(direction), search_google(query), "
-    "search_amazon(query). Reply with just the action call, nothing else."
-)
+from config import OLLAMA_MODEL, OLLAMA_SYSTEM_PROMPT
+from actions.apps import open_app
+from actions.windows import snap_window
+from actions.web import search_google, search_amazon
+
+log = logging.getLogger("signal")
+
+ACTION_MAP = {
+    "open_app": open_app,
+    "snap_window": snap_window,
+    "search_google": search_google,
+    "search_amazon": search_amazon,
+}
+
+CALL_PATTERN = re.compile(r'(\w+)\(\s*["\']?(.*?)["\']?\s*\)')
 
 
 def ask_llm(text: str) -> str:
     response = ollama.chat(
-        model="llama3.2:3b",
+        model=OLLAMA_MODEL,
         messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": OLLAMA_SYSTEM_PROMPT},
             {"role": "user", "content": text},
         ],
     )
     action_call = response["message"]["content"].strip()
-    # TODO: parse action_call and dispatch to the matching function in actions/
-    return f"command accepted - {action_call}"
+    log.info("llm proposed: %s", action_call)
+
+    match = CALL_PATTERN.match(action_call)
+    if not match:
+        return "I couldn't work out what to do with that."
+
+    func_name, arg = match.group(1), match.group(2)
+    action_fn = ACTION_MAP.get(func_name)
+    if not action_fn:
+        return f"I don't have an action called {func_name}."
+
+    try:
+        return action_fn(arg.lower().strip())
+    except Exception:
+        log.exception("action dispatch failed for %s(%r)", func_name, arg)
+        return "something went wrong carrying that out."

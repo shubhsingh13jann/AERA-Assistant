@@ -8,6 +8,9 @@ from config import APPS
 
 def open_app(name: str) -> str:
     path = APPS.get(name)
+    if path and path.startswith("shell:AppsFolder\\"):
+        subprocess.Popen(["explorer.exe", path])
+        return f"command accepted - opening {name}."
     if path and os.path.exists(path):
         subprocess.Popen(path)
         return f"command accepted - opening {name}."

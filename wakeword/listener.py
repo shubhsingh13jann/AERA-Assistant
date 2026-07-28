@@ -1,14 +1,12 @@
 """
-Wake word detection using openWakeWord.
-
-Uses a pretrained model as a placeholder so the pipeline is testable
-today ("hey_jarvis" ships with the library - that's just its name in
-the open-source project, unrelated to training your own "hey signal"
-phrase later - see the note at the bottom).
-
-pip install openwakeword pyaudio numpy
+Wake word detection using openWakeWord, with indefinite retry/backoff
+on audio stream errors (a Bluetooth headset turning off should never
+permanently kill the assistant), and a live mic level pushed via
+on_level() so the UI can show real-time status, including when the
+device is disconnected.
 """
 
+import time
 import logging
 
 import numpy as np
@@ -16,24 +14,47 @@ import pyaudio
 import openwakeword
 from openwakeword.model import Model
 
+from audio_devices import resolve_input_device
+
 log = logging.getLogger("signal")
 
-CHUNK = 1280           # 80ms at 16kHz - the frame size openWakeWord expects
+CHUNK = 1280
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 16000
-THRESHOLD = 0.35        # lowered from 0.5 - headset peaks around 0.4-0.5
+THRESHOLD = 0.20
+WAKE_KEY = "hey_jarvis"
 
-DEVICE_INDEX = 2        # your headset - confirmed working in test_mic.py
+LEVEL_SCALE_MAX = 8000
+LEVEL_PUSH_EVERY_N_FRAMES = 5
+MAX_RETRY_DELAY = 5.0
 
-WAKE_KEY = "hey_jarvis"  # dictionary key in the prediction result, not a filename
+
+def _open_stream_with_retry(audio, on_level):
+    """Retries forever with capped backoff - a headset being off is a
+    temporary condition, not a reason to give up permanently."""
+    delay = 0.5
+    attempt = 0
+    while True:
+        attempt += 1
+        try:
+            device_index, device_name, rate = resolve_input_device(audio)
+            stream = audio.open(
+                format=FORMAT, channels=CHANNELS, rate=rate,
+                input=True, input_device_index=device_index, frames_per_buffer=CHUNK,
+            )
+            if attempt > 1:
+                log.info("stream reopened successfully after %d attempts", attempt)
+            return stream, device_name
+        except (OSError, RuntimeError) as e:
+            if on_level:
+                on_level("Preferred microphone (disconnected)", 0)
+            log.warning("stream open failed (attempt %d) - %s, retrying in %.1fs", attempt, e, delay)
+            time.sleep(delay)
+            delay = min(delay * 1.5, MAX_RETRY_DELAY)
 
 
-def listen_for_wake_word(on_detected):
-    """
-    Blocks, listening on the default mic for the wake word.
-    Calls on_detected() every time it triggers, then keeps listening.
-    """
+def listen_for_wake_word(on_detected, on_level=None):
     log.info("checking openWakeWord models (downloads once, cached after)...")
     openwakeword.utils.download_models()
 
@@ -41,44 +62,57 @@ def listen_for_wake_word(on_detected):
     log.info("models loaded: %s", list(model.models.keys()))
 
     audio = pyaudio.PyAudio()
-    stream = audio.open(
-        format=FORMAT, channels=CHANNELS, rate=RATE,
-        input=True, input_device_index=DEVICE_INDEX, frames_per_buffer=CHUNK,
-    )
-    log.info("listening for wake word %r on device %s - say it now", WAKE_KEY, DEVICE_INDEX)
+    stream, device_name = _open_stream_with_retry(audio, on_level)
+    log.info("listening for wake word %r on %r - say it now", WAKE_KEY, device_name)
 
     frame_count = 0
     try:
         while True:
-            raw = stream.read(CHUNK, exception_on_overflow=False)
+            try:
+                raw = stream.read(CHUNK, exception_on_overflow=False)
+            except OSError:
+                log.warning("audio stream error - device likely disconnected, retrying...")
+                try:
+                    stream.stop_stream()
+                    stream.close()
+                except Exception:
+                    pass
+                if on_level:
+                    on_level(f"{device_name} (disconnected)", 0)
+                model.reset()
+                stream, device_name = _open_stream_with_retry(audio, on_level)
+                continue
+
             chunk = np.frombuffer(raw, dtype=np.int16)
+            peak = int(np.max(np.abs(chunk))) if len(chunk) else 0
             predictions = model.predict(chunk)
 
             frame_count += 1
-            if frame_count % 25 == 0:
-                log.info("listening... score: %.3f", predictions.get(WAKE_KEY, 0.0))
+            level_pct = min(100, int(peak / LEVEL_SCALE_MAX * 100))
+
+            if frame_count % LEVEL_PUSH_EVERY_N_FRAMES == 0:
+                bar_len = level_pct // 4  # 25 chars max
+                bar = "#" * bar_len + "-" * (25 - bar_len)
+                log.info("mic [%s] %3d%%   wake score: %.3f", bar, level_pct, predictions.get(WAKE_KEY, 0.0))
+                if on_level:
+                    on_level(device_name, level_pct)
 
             score = predictions.get(WAKE_KEY, 0.0)
             if score > THRESHOLD:
                 log.info("wake word detected (score=%.3f)", score)
                 model.reset()
-                on_detected()
-                # Discard whatever got buffered while we were recording/
-                # speaking, so we don't immediately re-trigger on our own
-                # reply bleeding back into the mic.
+
                 stream.stop_stream()
-                stream.start_stream()
+                stream.close()
+                time.sleep(0.2)
+
+                on_detected()
+
+                stream, device_name = _open_stream_with_retry(audio, on_level)
     finally:
-        stream.stop_stream()
-        stream.close()
+        try:
+            stream.stop_stream()
+            stream.close()
+        except Exception:
+            pass
         audio.terminate()
-
-
-# ---------------------------------------------------------------------------
-# Training your own "hey signal" wake word (later, not a blocker today):
-#   1. pip install openwakeword[train]
-#   2. Use openWakeWord's training notebook - it generates synthetic TTS
-#      training clips for your custom phrase.
-#   3. Drop the resulting model into wakeword/models/ and point WAKE_KEY
-#      at it instead of "hey_jarvis".
-# ---------------------------------------------------------------------------

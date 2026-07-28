@@ -5,23 +5,14 @@ loop on a background thread.
 """
 
 import logging
-""" import os
-import nvidia.cublas.lib
-import nvidia.cudnn.lib
-
-os.environ["PATH"] = (
-    os.path.dirname(nvidia.cublas.lib.__file__) + os.pathsep +
-    os.path.dirname(nvidia.cudnn.lib.__file__) + os.pathsep +
-    os.environ["PATH"]
-) """
 
 from wakeword.listener import listen_for_wake_word
+from wakeword.mic_check import run_mic_check
 from stt.transcriber import record_audio, transcribe
 from intents.router import route
 from voice.speaker import speak
 from storage.db import init_db, log_message
-from ui.overlay import start_ui, set_orb_state, add_message
-
+from ui.overlay import start_ui, set_orb_state, add_message, set_mic_level
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s  %(message)s", datefmt="%H:%M:%S")
 log = logging.getLogger("signal")
@@ -49,12 +40,11 @@ def on_wake():
 
 
 def run_assistant(window):
-    """Runs on pywebview's background thread - the window itself runs
-    on the main thread, so this blocking loop never freezes the UI."""
     try:
         init_db()
+        run_mic_check()
         speak("signal online. mic armed.")
-        listen_for_wake_word(on_detected=on_wake)
+        listen_for_wake_word(on_detected=on_wake, on_level=set_mic_level)
     except Exception:
         log.exception("assistant thread crashed")
 

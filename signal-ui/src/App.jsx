@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import Orb from "./Orb";
 import Conversation from "./Conversation";
+import MicMeter from "./MicMeter";
 
 export default function App() {
   const [orbState, setOrbState] = useState("idle");
   const [messages, setMessages] = useState([]);
+  const [micLevel, setMicLevelState] = useState(0);
+  const [deviceName, setDeviceName] = useState("");
 
-  // Python (via pywebview) calls window.setOrbState / window.addMessage
-  // directly - that's the bridge, no fetch/websocket needed.
   useEffect(() => {
     window.setOrbState = (state) => setOrbState(state);
     window.addMessage = (role, text) => {
@@ -20,6 +21,10 @@ export default function App() {
           time: new Date().toLocaleTimeString("en-GB", { hour12: false }),
         },
       ]);
+    };
+    window.setMicLevel = (level, name) => {
+      setMicLevelState(level);
+      setDeviceName(name);
     };
   }, []);
 
@@ -36,6 +41,7 @@ export default function App() {
           <Orb state={orbState} />
           <Conversation messages={messages} />
         </div>
+        <MicMeter level={micLevel} deviceName={deviceName} />
       </div>
     </div>
   );

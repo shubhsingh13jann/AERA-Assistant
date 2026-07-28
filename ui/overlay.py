@@ -37,3 +37,8 @@ def add_message(role: str, text: str) -> None:
     if _window:
         safe_text = text.replace("'", "\\'")
         _window.evaluate_js(f"window.addMessage('{role}', '{safe_text}')")
+
+def set_mic_level(device_name: str, level: int) -> None:
+    if _window:
+        safe_name = device_name.replace("'", "\\'")
+        _window.evaluate_js(f"window.setMicLevel({level}, '{safe_name}')")

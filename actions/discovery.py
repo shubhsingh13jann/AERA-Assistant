@@ -1,14 +1,14 @@
 """
-App discovery - searches Windows Start Menu shortcuts (.lnk files) for
-one matching a spoken app name, resolves the shortcut's real .exe
-target. Only ever called on a cache miss (see open_app in apps.py) -
-this is the expensive step the cache exists to avoid repeating.
+App discovery - checks the system PATH first (covers Windows built-ins
+like notepad, calc, mspaint - these often have no Start Menu shortcut
+at all), then falls back to searching Start Menu .lnk shortcuts.
 
 pip install pywin32
 """
 
 import os
 import glob
+import shutil
 import logging
 
 import win32com.client
@@ -22,11 +22,14 @@ SEARCH_DIRS = [
 
 
 def find_app_path(name: str):
-    """Search Start Menu shortcuts for one matching `name`. Returns the
-    resolved .exe path, or None if nothing matched."""
     name = name.lower().strip()
-    shell = win32com.client.Dispatch("WScript.Shell")
 
+    which_result = shutil.which(name)
+    if which_result:
+        log.info("discovery matched %r via system PATH: %s", name, which_result)
+        return which_result
+
+    shell = win32com.client.Dispatch("WScript.Shell")
     for base_dir in SEARCH_DIRS:
         if not os.path.isdir(base_dir):
             continue

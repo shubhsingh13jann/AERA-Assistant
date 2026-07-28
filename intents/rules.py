@@ -2,13 +2,10 @@
 Declarative intent table. Add a new command by adding one Intent
 entry here - no need to touch the router or the main loop.
 
-Order matters, and so does anchoring: "open chrome and search for
-gaming laptop" contains the literal substring "open chrome" AND the
-word "search" - only ONE intent ever fires per utterance, so whichever
-pattern matches first wins. open_app is anchored with ^...$ so it can
-only match when the entire command is just "open <app>" - nothing
-after it - which is the real fix. Search intents are also placed
-first as a second layer of the same protection.
+Order matters, and so does anchoring: open_app is anchored with ^...$
+so it only matches when the entire command is just "open <app>" -
+nothing after it - which stops it from swallowing longer sentences
+like "open chrome and search for X".
 """
 
 import re
@@ -37,9 +34,9 @@ INTENTS = [
     Intent("google_search_fallback", re.compile(r"search (.+)"),
            lambda m: search_google(m.group(1))),
 
-    # Anchored: only matches if the WHOLE command is exactly "open <app>",
-    # nothing else. This is what stops it from swallowing longer sentences.
-    Intent("open_app", re.compile(r"^open (whatsapp|chrome|vscode)$"),
+    # Now matches ANY single-word app name, not just whatsapp/chrome/vscode -
+    # open_app's own cache-aside logic figures out the rest.
+    Intent("open_app", re.compile(r"^open ([a-z0-9]+)$"),
            lambda m: open_app(m.group(1))),
 
     Intent("snap_left", re.compile(r"(shift|snap|move).*\bleft\b"),

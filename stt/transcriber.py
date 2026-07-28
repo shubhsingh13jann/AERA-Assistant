@@ -13,14 +13,13 @@ import numpy as np
 import pyaudio
 from faster_whisper import WhisperModel
 
+from audio_devices import resolve_input_device
 from config import WHISPER_MODEL
 
 log = logging.getLogger("signal")
 
 _model = None
-_RATE = 16000
 _CHUNK = 1024
-DEVICE_INDEX = 2  # same headset used for wake word - keep in sync with wakeword/listener.py
 
 
 def _get_model():
@@ -33,11 +32,14 @@ def _get_model():
 def record_audio(path: str = "temp_clip.wav", seconds: float = 5.0) -> str:
     """Record a short clip from the mic (called right after the wake word fires)."""
     audio = pyaudio.PyAudio()
-    stream = audio.open(format=pyaudio.paInt16, channels=1, rate=_RATE,
-                         input=True, input_device_index=DEVICE_INDEX,
+    device_index, device_name, rate = resolve_input_device(audio)
+    log.info("recording command from device [%d]: %s", device_index, device_name)
+    stream = audio.open(format=pyaudio.paInt16, channels=1, rate=rate,
+                         input=True, input_device_index=device_index,
                          frames_per_buffer=_CHUNK)
     frames = [stream.read(_CHUNK, exception_on_overflow=False)
-              for _ in range(int(_RATE / _CHUNK * seconds))]
+              for _ in range(int(rate / _CHUNK * seconds))]
+    sample_width = audio.get_sample_size(pyaudio.paInt16)
     stream.stop_stream()
     stream.close()
     audio.terminate()
@@ -49,8 +51,8 @@ def record_audio(path: str = "temp_clip.wav", seconds: float = 5.0) -> str:
 
     with wave.open(path, "wb") as wf:
         wf.setnchannels(1)
-        wf.setsampwidth(audio.get_sample_size(pyaudio.paInt16))
-        wf.setframerate(_RATE)
+        wf.setsampwidth(sample_width)
+        wf.setframerate(rate)
         wf.writeframes(raw)
     return path
 

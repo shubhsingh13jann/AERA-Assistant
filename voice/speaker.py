@@ -1,40 +1,63 @@
-"""
-Text-to-speech confirmations. The engine is created lazily, on first
-call to speak() - on whichever thread that turns out to be - instead
-of at import time.
-
-Why: pyttsx3 on Windows drives SAPI5 through COM. If the engine gets
-created on the main thread (which happens automatically if you call
-pyttsx3.init() at import time) and then speak() is called from a
-different thread - like pywebview's background assistant thread -
-runAndWait() can hang forever with no error at all. Building the
-engine on the same thread it's actually used from avoids that.
-"""
+"""Reliable, serialized text-to-speech replies for the assistant."""
 
 import logging
+import queue
 import threading
 
-import pyttsx3
-
-from config import TTS_RATE
+import pythoncom
+import win32com.client
 
 log = logging.getLogger("signal")
 
-_tts = None
-_lock = threading.Lock()
+_requests = queue.Queue()
+_worker = None
+_worker_lock = threading.Lock()
 
 
-def _get_engine():
-    global _tts
-    with _lock:
-        if _tts is None:
-            _tts = pyttsx3.init()
-            _tts.setProperty("rate", TTS_RATE)
-    return _tts
+def _run_speaker():
+    """Speak one queued reply at a time through a fresh Windows SAPI voice."""
+
+    while True:
+        text, finished = _requests.get()
+        try:
+            log.info("TTS speaking: %s", text)
+            # pyttsx3's reused engine speaks the startup message but can then
+            # silently complete later requests. A fresh SAPI voice per reply
+            # keeps the Windows audio session valid for Bluetooth headsets.
+            pythoncom.CoInitialize()
+            try:
+                voice = win32com.client.Dispatch("SAPI.SpVoice")
+                voice.Rate = 0
+                voice.Speak(text)
+            finally:
+                pythoncom.CoUninitialize()
+            log.info("TTS finished")
+        except Exception:
+            # Do not let a SAPI failure kill wake-word detection.
+            log.exception("TTS playback failed")
+        finally:
+            finished.set()
+            _requests.task_done()
+
+
+def _ensure_worker():
+    global _worker
+
+    with _worker_lock:
+        if _worker is None or not _worker.is_alive():
+            _worker = threading.Thread(
+                target=_run_speaker,
+                name="signal-tts",
+                daemon=True,
+            )
+            _worker.start()
 
 
 def speak(text: str) -> None:
+    """Speak text and wait for playback before the assistant resumes listening."""
     log.info("SIGNAL > %s", text)
-    engine = _get_engine()
-    engine.say(text)
-    engine.runAndWait()
+    _ensure_worker()
+
+    finished = threading.Event()
+    _requests.put((text, finished))
+    finished.wait()

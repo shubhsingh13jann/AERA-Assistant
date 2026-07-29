@@ -24,6 +24,11 @@ def on_wake():
     audio_path = record_audio(seconds=4.0)
     heard = transcribe(audio_path)
     if not heard:
+        response = "I couldn't hear that. Please try again."
+        log.info("SIGNAL > %s", response)
+        add_message("assistant", response)
+        log_message("assistant", response)
+        speak(response)
         set_orb_state("idle")
         return
 

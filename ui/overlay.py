@@ -16,6 +16,23 @@ DIST_PATH = os.path.join(os.path.dirname(__file__), "..", "signal-ui", "dist", "
 _window = None
 
 
+def _evaluate_javascript(script: str) -> None:
+    """Send a UI update only while the pywebview window still exists."""
+    window = _window
+    if not window:
+        return
+    try:
+        window.evaluate_js(script)
+    except Exception:
+        # The user may have closed the window while the audio loop is running.
+        pass
+
+
+def _on_window_closed():
+    global _window
+    _window = None
+
+
 def start_ui(assistant_main):
     """
     assistant_main: the blocking wake-word/STT/router loop. pywebview
@@ -25,20 +42,18 @@ def start_ui(assistant_main):
     """
     global _window
     _window = webview.create_window("Signal", DIST_PATH, width=760, height=460)
+    _window.events.closed += _on_window_closed
     webview.start(assistant_main, _window)
 
 
 def set_orb_state(state: str) -> None:
-    if _window:
-        _window.evaluate_js(f"window.setOrbState('{state}')")
+    _evaluate_javascript(f"window.setOrbState('{state}')")
 
 
 def add_message(role: str, text: str) -> None:
-    if _window:
-        safe_text = text.replace("'", "\\'")
-        _window.evaluate_js(f"window.addMessage('{role}', '{safe_text}')")
+    safe_text = text.replace("'", "\\'")
+    _evaluate_javascript(f"window.addMessage('{role}', '{safe_text}')")
 
 def set_mic_level(device_name: str, level: int) -> None:
-    if _window:
-        safe_name = device_name.replace("'", "\\'")
-        _window.evaluate_js(f"window.setMicLevel({level}, '{safe_name}')")
+    safe_name = device_name.replace("'", "\\'")
+    _evaluate_javascript(f"window.setMicLevel({level}, '{safe_name}')")

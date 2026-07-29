@@ -33,6 +33,10 @@ def open_app(name: str) -> str:
             cache_app_path(name, path)
             log.info("learned new app: %s -> %s", name, path)
 
+    if path and path.startswith("shell:AppsFolder\\"):
+        subprocess.Popen(["explorer.exe", path])
+        return f"command accepted - opening {name}."
+
     if path and os.path.exists(path):
         subprocess.Popen(path)
         return f"command accepted - opening {name}."

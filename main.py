@@ -18,9 +18,11 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s  %(message)s", datef
 log = logging.getLogger("signal")
 
 
-def on_wake():
+def on_wake(wake_word: str):
     set_orb_state("listening")
-    log.info("wake word detected, recording command...")
+    log.info("wake word %r detected, acknowledging user...", wake_word)
+    speak("Yes boss.")
+    log.info("recording command...")
     audio_path = record_audio(seconds=4.0)
     heard = transcribe(audio_path)
     if not heard:

@@ -1,7 +1,5 @@
 """Central configuration - paths, constants, settings."""
 
-from pathlib import Path
-
 APPS = {
     "whatsapp": r"shell:AppsFolder\5319275A.WhatsAppDesktop_cv1g1gvanyjgm!App",
     "chrome": r"C:\Program Files\Google\Chrome\Application\chrome.exe",
@@ -9,19 +7,9 @@ APPS = {
     "netflix": r"shell:AppsFolder\4DF9E0F8.Netflix_mcm4njqhnhss8!Netflix.App",
 }
 
-# Custom models are enabled automatically once both ONNX files are placed in
-# wakeword/models/. Until then the assistant keeps using the built-in
-# hey_jarvis model so the app remains usable during setup.
-_WAKE_MODEL_DIR = Path(__file__).parent / "wakeword" / "models"
-CUSTOM_WAKE_MODELS = {
-    "rudra": _WAKE_MODEL_DIR / "rudra.onnx",
-    "hey_rudra": _WAKE_MODEL_DIR / "hey_rudra.onnx",
-}
-WAKE_THRESHOLDS = {
-    "rudra": 0.35,
-    "hey_rudra": 0.35,
-    "hey_jarvis": 0.20,
-}
+# Built-in openWakeWord model used by the assistant.
+WAKE_WORD = "hey_jarvis"
+WAKE_THRESHOLD = 0.20
 TTS_RATE = 178
 WHISPER_MODEL = "small.en"
 

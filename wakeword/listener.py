@@ -15,7 +15,7 @@ import openwakeword
 from openwakeword.model import Model
 
 from audio_devices import resolve_input_device
-from config import CUSTOM_WAKE_MODELS, WAKE_THRESHOLDS
+from config import WAKE_THRESHOLD, WAKE_WORD
 
 log = logging.getLogger("signal")
 
@@ -23,8 +23,6 @@ CHUNK = 1280
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 16000
-DEFAULT_WAKE_KEY = "hey_jarvis"
-
 LEVEL_SCALE_MAX = 8000
 LEVEL_PUSH_EVERY_N_FRAMES = 5
 MAX_RETRY_DELAY = 5.0
@@ -58,26 +56,13 @@ def listen_for_wake_word(on_detected, on_level=None):
     log.info("checking openWakeWord models (downloads once, cached after)...")
     openwakeword.utils.download_models()
 
-    missing_models = [name for name, path in CUSTOM_WAKE_MODELS.items() if not path.is_file()]
-    custom_model_paths = [str(path) for path in CUSTOM_WAKE_MODELS.values()]
-    if not missing_models:
-        model = Model(wakeword_models=custom_model_paths)
-        wake_keys = list(model.models.keys())
-        log.info("custom wake-word models loaded: %s", wake_keys)
-    else:
-        model = Model()
-        wake_keys = [DEFAULT_WAKE_KEY]
-        log.warning(
-            "Rudra setup is incomplete (missing: %s); using built-in %r until "
-            "both ONNX model files are added.",
-            ", ".join(missing_models), DEFAULT_WAKE_KEY,
-        )
+    model = Model()
 
     log.info("models loaded: %s", list(model.models.keys()))
 
     audio = pyaudio.PyAudio()
     stream, device_name = _open_stream_with_retry(audio, on_level)
-    log.info("listening for wake words %s on %r - say one now", wake_keys, device_name)
+    log.info("listening for wake word %r on %r - say it now", WAKE_WORD, device_name)
 
     frame_count = 0
     try:
@@ -107,27 +92,21 @@ def listen_for_wake_word(on_detected, on_level=None):
             if frame_count % LEVEL_PUSH_EVERY_N_FRAMES == 0:
                 bar_len = level_pct // 4  # 25 chars max
                 bar = "#" * bar_len + "-" * (25 - bar_len)
-                score_text = ", ".join(
-                    f"{key}={predictions.get(key, 0.0):.3f}" for key in wake_keys
-                )
-                log.info("mic [%s] %3d%%   wake score: %s", bar, level_pct, score_text)
+                score = predictions.get(WAKE_WORD, 0.0)
+                log.info("mic [%s] %3d%%   wake score: %.3f", bar, level_pct, score)
                 if on_level:
                     on_level(device_name, level_pct)
 
-            wake_key, score = max(
-                ((key, predictions.get(key, 0.0)) for key in wake_keys),
-                key=lambda item: item[1],
-            )
-            threshold = WAKE_THRESHOLDS.get(wake_key, 0.35)
-            if score > threshold:
-                log.info("wake word %r detected (score=%.3f)", wake_key, score)
+            score = predictions.get(WAKE_WORD, 0.0)
+            if score > WAKE_THRESHOLD:
+                log.info("wake word %r detected (score=%.3f)", WAKE_WORD, score)
                 model.reset()
 
                 stream.stop_stream()
                 stream.close()
                 time.sleep(0.2)
 
-                on_detected(wake_key)
+                on_detected(WAKE_WORD)
 
                 stream, device_name = _open_stream_with_retry(audio, on_level)
     finally:

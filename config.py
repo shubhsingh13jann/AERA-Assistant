@@ -24,3 +24,9 @@ OLLAMA_SYSTEM_PROMPT = (
     "of: open_app(name), snap_window(direction), search_google(query), "
     "search_amazon(query). Reply with just the action call, nothing else."
 )
+
+WHISPER_VOCAB_HINT = (
+    "Claude, GitHub Desktop, GitHub, Visual Studio Code, WhatsApp, Chrome, "
+    "Notepad, Calculator, Sticky Notes, Paint, Netflix, Microsoft Word, "
+    "Microsoft Excel, Cloudflare WARP, Steam, Spotify"
+)

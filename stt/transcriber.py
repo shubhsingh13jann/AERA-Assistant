@@ -14,7 +14,7 @@ import pyaudio
 from faster_whisper import WhisperModel
 
 from audio_devices import resolve_input_device
-from config import WHISPER_MODEL
+from config import WHISPER_MODEL, WHISPER_VOCAB_HINT
 
 log = logging.getLogger("signal")
 
@@ -59,5 +59,7 @@ def record_audio(path: str = "temp_clip.wav", seconds: float = 5.0) -> str:
 
 def transcribe(audio_path: str) -> str:
     """Transcribe a short audio clip and return the recognized text."""
-    segments, _ = _get_model().transcribe(audio_path, vad_filter=True)
+    segments, _ = _get_model().transcribe(
+        audio_path, vad_filter=True, initial_prompt=WHISPER_VOCAB_HINT,
+    )
     return " ".join(seg.text for seg in segments).strip()

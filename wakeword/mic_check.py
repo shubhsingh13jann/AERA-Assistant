@@ -39,6 +39,9 @@ def run_mic_check(rate: int = 16000, chunk: int = 1280, seconds: float = 3.0) ->
     print()
 
     if peak_overall < 500:
-        print("  warning: very quiet signal - check the mic isn't muted or the wrong device is selected.\n")
+        print(
+            "  warning: very quiet signal - speak during this check, then verify "
+            "the headset microphone and Windows input volume.\n"
+        )
     else:
         print(f"  mic check passed - peak {peak_overall}/32768 detected.\n")

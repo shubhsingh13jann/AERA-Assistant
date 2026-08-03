@@ -24,6 +24,14 @@ def test_open_whatsapp_does_not_fall_through_to_search():
     mock_open.assert_called_once_with("whatsapp")
 
 
+def test_open_multi_word_app_does_not_fall_back_to_llm():
+    with patch("intents.rules.open_app", return_value="ok") as mock_open, \
+         patch("intents.router.ask_llm") as mock_llm:
+        route("open github desktop")
+    mock_open.assert_called_once_with("github desktop")
+    mock_llm.assert_not_called()
+
+
 def test_snap_left():
     with patch("intents.rules.snap_window", return_value="ok") as mock_snap:
         route("shift this window to the left")

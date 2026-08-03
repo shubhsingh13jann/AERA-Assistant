@@ -10,7 +10,7 @@ import os
 import subprocess
 import logging
 
-from config import APPS
+from config import APPS, APP_ALIASES
 from storage.db import get_cached_app_path, cache_app_path
 from actions.discovery import find_app_path
 
@@ -19,6 +19,11 @@ log = logging.getLogger("signal")
 
 def open_app(name: str) -> str:
     name = name.lower().strip()
+    normalized_name = " ".join(name.replace("-", " ").split())
+    canonical_name = APP_ALIASES.get(normalized_name, normalized_name)
+    if canonical_name != name:
+        log.info("normalized app request %r -> %r", name, canonical_name)
+    name = canonical_name
 
     path = APPS.get(name)
 

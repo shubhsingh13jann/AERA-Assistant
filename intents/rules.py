@@ -34,9 +34,9 @@ INTENTS = [
     Intent("google_search_fallback", re.compile(r"search (.+)"),
            lambda m: search_google(m.group(1))),
 
-    # Now matches ANY single-word app name, not just whatsapp/chrome/vscode -
-    # open_app's own cache-aside logic figures out the rest.
-    Intent("open_app", re.compile(r"^open ([a-z0-9]+)$"),
+    # Match multi-word names directly so they go through deterministic app
+    # discovery instead of letting the fallback LLM change the app name.
+    Intent("open_app", re.compile(r"^open\s+([a-z0-9][a-z0-9 ._-]*)$"),
            lambda m: open_app(m.group(1))),
 
     Intent("snap_left", re.compile(r"(shift|snap|move).*\bleft\b"),

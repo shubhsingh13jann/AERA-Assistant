@@ -9,13 +9,17 @@ APPS = {
 
 # Built-in openWakeWord model used by the assistant.
 WAKE_WORD = "hey_jarvis"
-WAKE_THRESHOLD = 0.20
+# The generic built-in Hey Jarvis model is a little conservative for the
+# headset microphone.  Keep this above background-noise scores while allowing
+# a valid phrase to wake the assistant on its first attempt.
+WAKE_THRESHOLD = 0.10
 TTS_RATE = 178
 WHISPER_MODEL = "small.en"
 
-# Match the headset by name instead of a fragile PyAudio device number. Windows
-# can change device indexes whenever a Bluetooth headset reconnects.
-AUDIO_INPUT_NAME = "OnePlus BulletsWireless Z2 ANC"
+# Leave this blank to follow the active Windows input device.  The selector
+# then prefers a connected headset/earbuds device and falls back to the best
+# available microphone.  Set a full or partial device name only to force one.
+AUDIO_INPUT_NAME = ""
 AUDIO_INPUT_RATE = 16000
 
 OLLAMA_MODEL = "llama3.2:3b"
@@ -30,3 +34,17 @@ WHISPER_VOCAB_HINT = (
     "Notepad, Calculator, Sticky Notes, Paint, Netflix, Microsoft Word, "
     "Microsoft Excel, Cloudflare WARP, Steam, Spotify"
 )
+
+# Normalize names that Whisper commonly produces before looking up an app.
+# Values are the canonical cache/discovery names used by the app launcher.
+APP_ALIASES = {
+    "github desktop": "github",
+    "git hub desktop": "github",
+    "git hub": "github",
+    "ms word": "word",
+    "msword": "word",
+    "microsoft word": "word",
+    "word 2013": "word",
+    "cloude": "claude",
+    "cloud": "claude",
+}

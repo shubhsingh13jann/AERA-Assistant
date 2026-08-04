@@ -31,7 +31,7 @@ def open_app(name: str) -> str:
         path = get_cached_app_path(name)
         if path:
             log.info("resolved %r from cache: %s", name, path)
-
+ 
     if not path:
         path = find_app_path(name)
         if path:
@@ -39,11 +39,19 @@ def open_app(name: str) -> str:
             log.info("learned new app: %s -> %s", name, path)
 
     if path and path.startswith("shell:AppsFolder\\"):
-        subprocess.Popen(["explorer.exe", path])
-        return f"command accepted - opening {name}."
+        try:
+            subprocess.Popen(["explorer.exe", path])
+            return f"command accepted - opening {name}."
+        except OSError:
+            log.exception("failed to open %s", path)
+            return f"found {name} but couldn't open it."
 
     if path and os.path.exists(path):
-        subprocess.Popen(path)
-        return f"command accepted - opening {name}."
+        try:
+            subprocess.Popen(path)
+            return f"command accepted - opening {name}."
+        except OSError:
+            log.exception("failed to open %s", path)
+            return f"found {name} but couldn't open it."
 
     return f"I couldn't find {name} in config, cache, or your Start Menu."

@@ -21,5 +21,10 @@ def route(text: str) -> str:
         if match:
             log.info("matched intent=%s text=%r", intent.name, text)
             return intent.handler(match)
+        
     log.info("no regex match, falling back to llm text=%r", text)
-    return ask_llm(text)
+    try:
+        return ask_llm(text)
+    except Exception:
+        log.exception("llm fallback failed - Ollama may not be running")
+        return "I couldn't reach the language model for that one."

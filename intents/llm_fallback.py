@@ -16,7 +16,7 @@ import ollama
 from config import OLLAMA_MODEL, OLLAMA_SYSTEM_PROMPT
 from actions.apps import open_app
 from actions.windows import snap_window
-from actions.web import search_google, search_amazon
+from actions.web import search_google, search_amazon, search_youtube, search_spotify
 
 log = logging.getLogger("signal")
 
@@ -25,6 +25,8 @@ ACTION_MAP = {
     "snap_window": snap_window,
     "search_google": search_google,
     "search_amazon": search_amazon,
+    "search_youtube": search_youtube,
+    "search_spotify": search_spotify,
 }
 
 CALL_PATTERN = re.compile(r'(\w+)\(\s*["\']?(.*?)["\']?\s*\)')

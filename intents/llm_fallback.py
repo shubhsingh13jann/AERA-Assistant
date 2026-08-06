@@ -15,6 +15,7 @@ import ollama
 
 from config import OLLAMA_MODEL, OLLAMA_SYSTEM_PROMPT
 from actions.apps import open_app
+from actions.close import close_app
 from actions.windows import snap_window
 from actions.web import search_google, search_amazon, search_youtube, search_spotify
 
@@ -22,6 +23,7 @@ log = logging.getLogger("signal")
 
 ACTION_MAP = {
     "open_app": open_app,
+    "close_app": close_app,
     "snap_window": snap_window,
     "search_google": search_google,
     "search_amazon": search_amazon,

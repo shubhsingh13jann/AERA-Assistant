@@ -8,3 +8,4 @@ PyQt6
 playwright
 pywebview
 pywin32
+psutil

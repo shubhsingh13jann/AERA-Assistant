@@ -15,7 +15,7 @@ from typing import Callable
 from actions.apps import open_app
 from actions.windows import snap_window
 from actions.web import search_google, search_amazon, search_youtube, search_spotify
-
+from actions.close import close_app
 
 @dataclass
 class Intent:
@@ -44,6 +44,9 @@ INTENTS = [
     # discovery instead of letting the fallback LLM change the app name.
     Intent("open_app", re.compile(r"^open\s+([a-z0-9][a-z0-9 ._-]*)$"),
            lambda m: open_app(m.group(1))),
+
+    Intent("close_app", re.compile(r"^(?:close|quit|exit)\s+([a-z0-9][a-z0-9 ._-]*)$"),
+           lambda m: close_app(m.group(1))),
 
     Intent("snap_left", re.compile(r"(shift|snap|move).*\bleft\b"),
            lambda m: snap_window("left")),

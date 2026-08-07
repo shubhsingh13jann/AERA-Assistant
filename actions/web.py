@@ -38,7 +38,23 @@ def search_youtube(query: str) -> str:
     return "command accepted - searching youtube."
 
 
+def play_youtube(query: str) -> str:
+    from actions.apps import open_app
+    open_app("youtube")
+    url = f"https://www.youtube.com/results?search_query={query.strip().replace(' ', '+')}"
+    _open_url_in_chrome(url)
+    return f"command accepted - opening youtube app and searching for {query}."
+
+
 def search_spotify(query: str) -> str:
     url = f"https://open.spotify.com/search/{query.strip().replace(' ', '%20')}"
     _open_url_in_chrome(url)
     return "command accepted - searching spotify."
+
+
+def play_spotify(query: str) -> str:
+    from actions.apps import open_app
+    open_app("spotify")
+    url = f"https://open.spotify.com/search/{query.strip().replace(' ', '%20')}"
+    _open_url_in_chrome(url)
+    return f"command accepted - opening spotify app and searching for {query}."

@@ -21,6 +21,8 @@ log = logging.getLogger("signal")
 PROCESS_NAME_OVERRIDES = {
     "vscode": "code",
     "visual studio code": "code",
+    "youtube": "chrome",
+    "spotify": "spotify",
 }
 
 

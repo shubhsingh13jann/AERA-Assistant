@@ -48,4 +48,5 @@ APP_ALIASES = {
     "word 2013": "word",
     "cloude": "claude",
     "cloud": "claude",
+    "vs code": "visual studio code",
 }

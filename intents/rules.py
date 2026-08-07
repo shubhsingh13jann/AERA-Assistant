@@ -14,7 +14,7 @@ from typing import Callable
 
 from actions.apps import open_app
 from actions.windows import snap_window
-from actions.web import search_google, search_amazon, search_youtube, search_spotify
+from actions.web import search_google, search_amazon, search_youtube, search_spotify, play_youtube, play_spotify
 from actions.close import close_app
 
 @dataclass
@@ -30,10 +30,15 @@ INTENTS = [
     Intent("amazon_search_on", re.compile(r"search (.+?) on amazon"),
            lambda m: search_amazon(m.group(1))),
 
-    Intent("youtube_search_explicit", re.compile(r"search (.+?) on youtube"),
+    Intent("youtube_search_on", re.compile(r"search (.+?) on youtube"),
            lambda m: search_youtube(m.group(1))),
-    Intent("spotify_search_explicit", re.compile(r"search (.+?) on spotify"),
+    Intent("youtube_play_on", re.compile(r"play (.+?) on youtube"),
+           lambda m: play_youtube(m.group(1))),
+
+    Intent("spotify_search_on", re.compile(r"search (.+?) on spotify"),
            lambda m: search_spotify(m.group(1))),
+    Intent("spotify_play_on", re.compile(r"play (.+?) on spotify"),
+           lambda m: play_spotify(m.group(1))),
 
     Intent("google_search_explicit", re.compile(r"search (.+?) on google"),
            lambda m: search_google(m.group(1))),

@@ -5,7 +5,8 @@ entry here - no need to touch the router or the main loop.
 Order matters, and so does anchoring: open_app is anchored with ^...$
 so it only matches when the entire command is just "open <app>" -
 nothing after it - which stops it from swallowing longer sentences
-like "open chrome and search for X".
+like "open chrome and search for X". System/media control intents use
+the same anchoring so "play" alone doesn't swallow "play X on youtube".
 """
 
 import re
@@ -13,9 +14,16 @@ from dataclasses import dataclass
 from typing import Callable
 
 from actions.apps import open_app
-from actions.windows import snap_window
-from actions.web import search_google, search_amazon, search_youtube, search_spotify, play_youtube, play_spotify
 from actions.close import close_app
+from actions.windows import snap_window
+from actions.web import (
+    search_google, search_amazon, search_youtube, search_spotify,
+    play_youtube, play_spotify,
+)
+from actions.system import (
+    volume_up, volume_down, toggle_mute, play_pause,
+    next_track, previous_track, lock_screen,
+)
 
 @dataclass
 class Intent:
@@ -44,6 +52,23 @@ INTENTS = [
            lambda m: search_google(m.group(1))),
     Intent("google_search_fallback", re.compile(r"search (.+)"),
            lambda m: search_google(m.group(1))),
+
+    # System / media control - anchored so these never swallow the
+    # platform-specific "play X on youtube/spotify" intents above.
+    Intent("volume_up", re.compile(r"^(volume up|turn (the )?volume up|increase (the )?volume|louder)$"),
+           lambda m: volume_up()),
+    Intent("volume_down", re.compile(r"^(volume down|turn (the )?volume down|decrease (the )?volume|quieter)$"),
+           lambda m: volume_down()),
+    Intent("toggle_mute", re.compile(r"^(mute|unmute|mute (the )?(volume|sound))$"),
+           lambda m: toggle_mute()),
+    Intent("play_pause", re.compile(r"^(play|stop|hold|resume)( music| song)?$"),
+           lambda m: play_pause()),
+    Intent("next_track", re.compile(r"^(next track|next song|skip( this song)?)$"),
+           lambda m: next_track()),
+    Intent("previous_track", re.compile(r"^(previous track|previous song|last track)$"),
+           lambda m: previous_track()),
+    Intent("lock_screen", re.compile(r"^lock( (the )?(screen|computer|pc))?$"),
+           lambda m: lock_screen()),
 
     # Match multi-word names directly so they go through deterministic app
     # discovery instead of letting the fallback LLM change the app name.

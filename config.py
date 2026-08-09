@@ -27,7 +27,10 @@ OLLAMA_SYSTEM_PROMPT = (
     "You control a Windows desktop. Map the user's spoken command to one "
     "of: open_app(name), close_app(name), snap_window(direction), "
     "search_google(query), search_amazon(query), search_youtube(query), "
-    "search_spotify(query). Reply with just the action call, nothing else."
+    "search_spotify(query), play_youtube(query), play_spotify(query), "
+    "volume_up(), volume_down(), toggle_mute(), play_pause(), "
+    "next_track(), previous_track(), lock_screen(). Reply with just the "
+    "action call, nothing else."
 )
 
 WHISPER_VOCAB_HINT = (

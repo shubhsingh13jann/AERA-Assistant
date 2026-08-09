@@ -17,7 +17,14 @@ from config import OLLAMA_MODEL, OLLAMA_SYSTEM_PROMPT
 from actions.apps import open_app
 from actions.close import close_app
 from actions.windows import snap_window
-from actions.web import search_google, search_amazon, search_youtube, search_spotify
+from actions.web import (
+    search_google, search_amazon, search_youtube, search_spotify,
+    play_youtube, play_spotify,
+)
+from actions.system import (
+    volume_up, volume_down, toggle_mute, play_pause,
+    next_track, previous_track, lock_screen
+)
 
 log = logging.getLogger("signal")
 
@@ -29,6 +36,15 @@ ACTION_MAP = {
     "search_amazon": search_amazon,
     "search_youtube": search_youtube,
     "search_spotify": search_spotify,
+    "play_youtube": play_youtube,
+    "play_spotify": play_spotify,
+    "volume_up": volume_up,
+    "volume_down": volume_down,
+    "toggle_mute": toggle_mute,
+    "play_pause": play_pause,
+    "next_track": next_track,
+    "previous_track": previous_track,
+    "lock_screen": lock_screen
 }
 
 CALL_PATTERN = re.compile(r'(\w+)\(\s*["\']?(.*?)["\']?\s*\)')

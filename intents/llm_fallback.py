@@ -22,8 +22,8 @@ from actions.web import (
     play_youtube, play_spotify,
 )
 from actions.system import (
-    volume_up, volume_down, toggle_mute, play_pause,
-    next_track, previous_track, lock_screen
+    volume_up, volume_down, set_volume, toggle_mute, play_pause, hold_pause,
+    next_track, previous_track, lock_screen,
 )
 
 log = logging.getLogger("signal")
@@ -40,8 +40,9 @@ ACTION_MAP = {
     "play_spotify": play_spotify,
     "volume_up": volume_up,
     "volume_down": volume_down,
+    "set_volume": set_volume,
     "toggle_mute": toggle_mute,
-    "play_pause": play_pause,
+    "hold_pause": hold_pause,
     "next_track": next_track,
     "previous_track": previous_track,
     "lock_screen": lock_screen

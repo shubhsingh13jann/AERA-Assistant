@@ -21,7 +21,7 @@ from actions.web import (
     play_youtube, play_spotify,
 )
 from actions.system import (
-    volume_up, volume_down, toggle_mute, play_pause,
+    volume_up, volume_down, set_volume, toggle_mute, play_pause, hold_pause,
     next_track, previous_track, lock_screen,
 )
 
@@ -55,14 +55,18 @@ INTENTS = [
 
     # System / media control - anchored so these never swallow the
     # platform-specific "play X on youtube/spotify" intents above.
+    Intent("volume_set", re.compile(r"volume (?:up |down )?(?:to )?(\d{1,3})\s*(?:%|percent)"),
+           lambda m: set_volume(m.group(1))),
     Intent("volume_up", re.compile(r"^(volume up|turn (the )?volume up|increase (the )?volume|louder)$"),
            lambda m: volume_up()),
     Intent("volume_down", re.compile(r"^(volume down|turn (the )?volume down|decrease (the )?volume|quieter)$"),
            lambda m: volume_down()),
     Intent("toggle_mute", re.compile(r"^(mute|unmute|mute (the )?(volume|sound))$"),
            lambda m: toggle_mute()),
-    Intent("play_pause", re.compile(r"^(play|stop|hold|resume)( music| song)?$"),
+    Intent("media_play", re.compile(r"^play$"),
            lambda m: play_pause()),
+    Intent("media_pause", re.compile(r"^(hold|stop)$"),
+           lambda m: hold_pause()),
     Intent("next_track", re.compile(r"^(next track|next song|skip( this song)?)$"),
            lambda m: next_track()),
     Intent("previous_track", re.compile(r"^(previous track|previous song|last track)$"),

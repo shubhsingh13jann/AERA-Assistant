@@ -9,3 +9,5 @@ playwright
 pywebview
 pywin32
 psutil
+pycaw
+comtypes

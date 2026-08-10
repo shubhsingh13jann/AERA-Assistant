@@ -37,7 +37,7 @@ def volume_down(_arg: str = "") -> str:
 
 def set_volume(percent: str) -> str:
     """Set system volume to an exact percentage using the Windows Core
-    Audio API (pycaw) - not simulated key presses, a direct level set."""
+    Audio API (pycaw) - a direct level set, not simulated key presses."""
     try:
         pct = max(0, min(100, int("".join(c for c in percent if c.isdigit()))))
     except ValueError:
@@ -48,15 +48,14 @@ def set_volume(percent: str) -> str:
         from comtypes import CLSCTX_ALL
         from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
 
-        devices = AudioUtilities.GetSpeakers()
-        interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
+        device = AudioUtilities.GetSpeakers()
+        interface = device._dev.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
         volume = cast(interface, POINTER(IAudioEndpointVolume))
         volume.SetMasterVolumeLevelScalar(pct / 100.0, None)
         return f"command accepted - volume set to {pct} percent."
     except Exception:
         log.exception("failed to set volume to %s%%", pct)
         return "something went wrong setting the volume."
-
 
 def toggle_mute(_arg: str = "") -> str:
     pyautogui.press("volumemute")

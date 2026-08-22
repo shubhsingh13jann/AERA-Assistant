@@ -1,102 +1,119 @@
 # Signal
 
-A personal, local-first voice command assistant for Windows. Say a command,
-Signal transcribes it, matches it to an action, does the thing, and talks
-back to confirm.
+Signal is a local-first Windows voice assistant for everyday desktop actions. Wake it with **“Hey Jarvis”**, say a command, and Signal can open applications, search the web, manage windows, and respond by voice.
 
-> "open whatsapp" -> opens WhatsApp
-> "shift this window to the left" -> snaps the active window left
-> "search rtx 3050 drivers on google" -> opens the search in your browser
+> Built for a private, hands-free desktop experience with on-device wake-word detection and speech recognition.
 
-## Why this exists
+## Highlights
 
-A JARVIS-style assistant that runs entirely on your own machine, follows
-rules you define, and doesn't send your voice to a cloud service unless
-you explicitly want it to.
+- **Wake-word activation** with openWakeWord (`Hey Jarvis`)
+- **Offline speech recognition** powered by faster-whisper
+- **Desktop app control** with Start Menu, PATH, and cached app discovery
+- **Natural command handling** using fast rule-based intents with an optional local Ollama fallback
+- **Voice confirmations** through Windows SAPI
+- **Desktop UI** built with React, Vite, and pywebview
+- **Automatic microphone selection** with Bluetooth headset fallback support
 
-## Architecture
+## What you can say
 
-Signal is a **modular monolith** - one Python process, cleanly separated
-into modules, not a distributed system. There's no scaling or multi-team
-reason to split this into microservices; it would only add latency for
-zero benefit. Two things run outside the process for practical reasons:
+| Say | Result |
+| --- | --- |
+| `Open Notepad` | Launches Notepad |
+| `Open Visual Studio Code` | Launches VS Code |
+| `Open GitHub Desktop` | Launches GitHub Desktop |
+| `Search Hanuman Chalisa on YouTube` | Opens YouTube search results |
+| `Search RTX 3050 drivers on Google` | Searches Google |
+| `Open Amazon and search wireless mouse` | Searches Amazon |
+| `Move this window to the left` | Snaps the active window left |
+| `Close Notepad` | Closes a supported running application |
 
-- **Ollama** - local LLM server, used only as a fallback when the regex
-  intent table doesn't match a phrase.
-- **Windows OS** - the actual target of actions (opening apps, snapping
-  windows, opening the browser).
+## Prerequisites
 
-```
-your voice
-    |
-    v
-+---------------------------------------------+
-|  Signal - single process                     |
-|                                               |
-|  [Audio in] -> [Decision] -> [Output]         |
-|  wake word     intent +      voice reply      |
-|  + STT         actions       + UI             |
-+---------------------------------------------+
-        |                    |
-        v                    v
-   [Ollama]             [Windows OS]
-   local LLM             apps, windows,
-   fallback only         browser
-```
+- Windows 10 or Windows 11
+- Python 3.10+
+- A working microphone or Bluetooth headset
+- [Ollama](https://ollama.com/) and the configured local model for flexible, non-rule-based commands
+- Node.js 18+ only when rebuilding the React interface
 
-## Project structure
+## Installation
 
-```
-signal_assistant/
-├── main.py                 # entry point - wires everything together
-├── config.py               # app paths, wake word, TTS rate, whisper model
-├── wakeword/listener.py    # openWakeWord - TODO, not built yet
-├── stt/transcriber.py      # faster-whisper wrapper
-├── intents/
-│   ├── rules.py            # the declarative intent table
-│   ├── router.py           # regex-first, LLM-fallback dispatch
-│   └── llm_fallback.py     # Ollama fallback for fuzzy phrasing
-├── actions/
-│   ├── apps.py             # open_app
-│   ├── windows.py          # snap_window
-│   └── web.py              # search_google, search_amazon
-├── voice/speaker.py        # pyttsx3 confirmations
-├── storage/db.py           # SQLite conversation + command log
-└── ui/                     # PyQt6 overlay - TODO, not built yet
-    ├── overlay.py
-    ├── orb_widget.py
-    └── conversation_widget.py
-```
-
-## Setup
-
-```bash
+```powershell
 git clone https://github.com/<your-username>/signal-assistant.git
 cd signal-assistant
 python -m venv .venv
-.venv\Scripts\activate
+.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
-Update the paths in `config.py` (`APPS` dict) to match your machine -
-right click each app's shortcut -> Properties -> Target.
+Install the configured Ollama model:
 
-```bash
+```powershell
+ollama pull llama3.2:3b
+```
+
+Build the interface once:
+
+```powershell
+cd signal-ui
+npm install
+npm run build
+cd ..
+```
+
+## Configuration
+
+Update [config.py](config.py) for your machine:
+
+- `APPS` — application paths and Windows App IDs
+- `AUDIO_INPUT_NAME` — leave blank for automatic microphone selection, or set part of a device name to force a particular microphone
+- `WAKE_THRESHOLD` — wake-word sensitivity; lower values wake more easily but can cause false activations
+- `OLLAMA_MODEL` — the local model used for fallback command interpretation
+
+Signal automatically prefers a working headset or earbud microphone at 16 kHz and falls back to another available Windows input device when needed.
+
+## Run
+
+```powershell
 python main.py
 ```
 
-## Status
+During startup, speak during the microphone check. Signal will show the selected input device and audio level before arming the wake word.
 
-| Module | Status |
-|---|---|
-| STT (faster-whisper) | done |
-| Intent router (regex + Ollama fallback) | done |
-| Actions (open app, snap window, search) | done |
-| Voice reply (pyttsx3) | done |
-| Storage (SQLite log) | done |
-| Wake word (openWakeWord) | not started |
-| Desktop overlay (PyQt6, glowing orb + conversation) | not started |
+## Development
+
+Run the test suite:
+
+```powershell
+python -m pytest
+```
+
+Run the React interface during UI development:
+
+```powershell
+cd signal-ui
+npm run dev
+```
+
+## Project layout
+
+| Path | Purpose |
+| --- | --- |
+| `main.py` | Application entry point and voice-command flow |
+| `wakeword/` | Wake-word listener and microphone diagnostics |
+| `stt/` | Audio recording and faster-whisper transcription |
+| `intents/` | Rule-based routing and Ollama fallback |
+| `actions/` | Application, browser, window, and close actions |
+| `voice/` | Windows text-to-speech responses |
+| `storage/` | SQLite command and app cache storage |
+| `ui/` | pywebview bridge for the desktop interface |
+| `signal-ui/` | React/Vite frontend |
+
+## Notes
+
+- Built-in wake-word models are downloaded by openWakeWord on first use.
+- Some Microsoft Store and browser/PWA apps may need a specific process or window mapping for reliable close commands.
+- All wake-word detection and speech recognition run locally. Ollama is only used when a command does not match a built-in rule.
 
 ## License
 
-MIT
+Released under the [MIT License](LICENSE).

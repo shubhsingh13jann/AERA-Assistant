@@ -41,7 +41,14 @@ def start_ui(assistant_main):
     same problem PyQt6 would have had, solved the same way.
     """
     global _window
-    _window = webview.create_window("Signal", DIST_PATH, width=760, height=460)
+    _window = webview.create_window(
+        "Signal // JARVIS MK-85",
+        DIST_PATH,
+        width=880,
+        height=530,
+        background_color="#07090c",
+        resizable=True,
+    )
     _window.events.closed += _on_window_closed
     webview.start(assistant_main, _window)
 

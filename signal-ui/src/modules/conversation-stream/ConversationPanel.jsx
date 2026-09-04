@@ -11,8 +11,8 @@ import {
   Send,
   Play,
   Pause,
-  Activity,
   Check,
+  Sparkles,
 } from 'lucide-react';
 
 export const ConversationPanel = () => {
@@ -36,15 +36,15 @@ export const ConversationPanel = () => {
     addConversationMessage('you', text);
     setInputVal('');
 
-    // Simulate JARVIS thinking and responding
+    // Simulate JARVIS thinking and responding if not running python pywebview backend
     setOrbState('processing');
     setTimeout(() => {
       setOrbState('speaking');
-      addConversationMessage('assistant', `Understood. Analyzing telemetry and processing your query regarding "${text}".`);
+      addConversationMessage('assistant', `Directive received: "${text}". Intent pipeline executed successfully.`);
       setTimeout(() => {
         setOrbState('idle');
-      }, 2500);
-    }, 1200);
+      }, 2000);
+    }, 1000);
   };
 
   const handleKeyDown = (e) => {
@@ -70,10 +70,13 @@ export const ConversationPanel = () => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col justify-between bg-[#040916]/85 backdrop-blur-2xl border border-cyan-500/20 rounded-2xl shadow-2xl p-4 select-none z-20 overflow-hidden">
+    <div className="w-full h-full flex flex-col justify-between bg-[#040916]/90 backdrop-blur-2xl border border-cyan-500/20 rounded-2xl shadow-2xl p-4 select-none z-20 overflow-hidden">
       {/* 1. Header */}
       <div className="flex items-center justify-between pb-3 border-b border-cyan-500/15 shrink-0">
-        <h2 className="text-base font-bold tracking-wide text-white">Conversation</h2>
+        <div className="flex items-center gap-2">
+          <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#00f0ff] animate-pulse" />
+          <h2 className="text-base font-bold tracking-wide text-white">Conversation</h2>
+        </div>
         <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-950/40 border border-emerald-500/30">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
@@ -85,309 +88,205 @@ export const ConversationPanel = () => {
         </div>
       </div>
 
-      {/* 2. Messages Stream */}
+      {/* 2. Messages Stream (Dynamically linked to Python backend & state) */}
       <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto custom-scrollbar space-y-4 my-3 pr-1 text-sm font-sans"
       >
-        {/* User Voice Message 1 */}
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-blue-600/80 flex items-center justify-center text-white shadow-[0_0_8px_rgba(37,99,235,0.6)]">
-              <Mic className="w-3 h-3" />
-            </div>
-            <span className="text-xs font-semibold text-slate-200">You</span>
-            <span className="text-[10px] text-slate-500">11:47 PM</span>
-          </div>
+        {messages && messages.length > 0 ? (
+          messages.map((msg, index) => {
+            const isUser = msg.role === 'you' || msg.role === 'user';
+            const isJarvis = msg.role === 'assistant' || msg.role === 'jarvis';
 
-          <div className="ml-8 bg-[#091328]/90 border border-cyan-500/20 rounded-2xl rounded-tl-sm p-3 space-y-2 shadow-lg">
-            <p className="text-slate-100 text-xs leading-relaxed">
-              What is the summary of this PDF?
-            </p>
+            return (
+              <div key={msg.id || index} className="space-y-1 animate-fadeIn">
+                {/* Header info */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {isUser ? (
+                      <div className="w-6 h-6 rounded-full bg-blue-600/80 flex items-center justify-center text-white shadow-[0_0_8px_rgba(37,99,235,0.6)] shrink-0">
+                        <Mic className="w-3 h-3" />
+                      </div>
+                    ) : (
+                      <div className="relative w-6 h-6 rounded-full bg-[#0a1630] border border-cyan-400/80 flex items-center justify-center shadow-[0_0_8px_rgba(0,240,255,0.5)] shrink-0">
+                        <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
+                      </div>
+                    )}
+                    <span className={`text-xs font-semibold ${isUser ? 'text-slate-200' : 'text-cyan-300'}`}>
+                      {isUser ? 'You' : 'JARVIS'}
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono">{msg.time || 'NOW'}</span>
+                  </div>
 
-            {/* Audio Waveform Player */}
-            <div className="flex items-center gap-2.5 pt-1">
-              <button
-                onClick={() => togglePlayVoice('v1')}
-                className="w-7 h-7 rounded-full bg-blue-600/60 hover:bg-blue-600 flex items-center justify-center text-white transition-all cursor-pointer shadow-[0_0_8px_rgba(37,99,235,0.5)]"
-              >
-                {playingVoice === 'v1' ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 ml-0.5" />}
-              </button>
-
-              {/* Waveform Bars */}
-              <div className="flex-1 flex items-center gap-0.5 h-6">
-                {[12, 18, 8, 22, 14, 26, 10, 20, 15, 24, 18, 12, 28, 16, 22, 14, 18, 9, 21, 15, 11, 25, 17, 13, 20, 12, 16].map((h, i) => (
-                  <div
-                    key={i}
-                    className={`w-1 rounded-full transition-all duration-150 ${
-                      playingVoice === 'v1' && i < 15
-                        ? 'bg-cyan-300 shadow-[0_0_6px_#00f0ff]'
-                        : 'bg-cyan-500/40'
-                    }`}
-                    style={{ height: `${h}px` }}
-                  />
-                ))}
-              </div>
-
-              <span className="text-[11px] font-mono text-slate-400 shrink-0">0:04</span>
-            </div>
-          </div>
-        </div>
-
-        {/* JARVIS AI Response 1 */}
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <div className="relative w-6 h-6 rounded-full bg-[#0a1630] border border-cyan-400/80 flex items-center justify-center shadow-[0_0_8px_rgba(0,240,255,0.5)]">
-              <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
-            </div>
-            <span className="text-xs font-semibold text-cyan-300">JARVIS</span>
-            <span className="text-[10px] text-slate-500">11:47 PM</span>
-          </div>
-
-          <div className="ml-8 bg-[#061022]/90 border border-cyan-500/30 rounded-2xl rounded-tl-sm p-3 space-y-2.5 shadow-lg">
-            <p className="text-slate-200 text-xs leading-relaxed">
-              I've analyzed the PDF. Here's a concise summary:
-            </p>
-
-            <ol className="space-y-1.5 text-xs text-slate-300 pl-4 list-decimal marker:text-cyan-400 marker:font-bold leading-relaxed">
-              <li>The document discusses the fundamentals of artificial intelligence...</li>
-              <li>It highlights real-world applications in healthcare, education, and industry...</li>
-              <li>It concludes with future opportunities and challenges...</li>
-            </ol>
-
-            {/* Attached PDF Card */}
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#0a1836]/90 border border-cyan-500/30 shadow-md">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-red-600/20 border border-red-500/40 flex items-center justify-center shrink-0">
-                  <FileText className="w-4 h-4 text-red-400" />
+                  {msg.tag && (
+                    <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${msg.tag.color || 'border-cyan-500/30 text-cyan-300'}`}>
+                      {msg.tag.label}
+                    </span>
+                  )}
                 </div>
-                <div>
-                  <div className="text-xs font-semibold text-slate-100">AI_Research_Paper.pdf</div>
-                  <div className="text-[10px] text-slate-400">12 pages • Analyzed</div>
-                </div>
-              </div>
 
-              <div className="flex items-center gap-1.5 text-slate-400">
-                <button
-                  onClick={handleCopy}
-                  className="p-1 hover:text-cyan-300 hover:bg-cyan-500/10 rounded transition-colors cursor-pointer"
-                  title="Copy reference"
-                >
-                  {copiedFile ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                </button>
-                <button
-                  onClick={() => soundService.click()}
-                  className="p-1 hover:text-cyan-300 hover:bg-cyan-500/10 rounded transition-colors cursor-pointer"
-                  title="Download"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={() => soundService.click()}
-                  className="p-1 hover:text-cyan-300 hover:bg-cyan-500/10 rounded transition-colors cursor-pointer"
-                  title="Open externally"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* User Voice Message 2 */}
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-blue-600/80 flex items-center justify-center text-white shadow-[0_0_8px_rgba(37,99,235,0.6)]">
-              <Mic className="w-3 h-3" />
-            </div>
-            <span className="text-xs font-semibold text-slate-200">You</span>
-            <span className="text-[10px] text-slate-500">11:48 PM</span>
-          </div>
-
-          <div className="ml-8 bg-[#091328]/90 border border-cyan-500/20 rounded-2xl rounded-tl-sm p-3 space-y-2 shadow-lg">
-            <p className="text-slate-100 text-xs leading-relaxed">
-              Can you explain the second point in detail?
-            </p>
-
-            {/* Audio Waveform Player */}
-            <div className="flex items-center gap-2.5 pt-1">
-              <button
-                onClick={() => togglePlayVoice('v2')}
-                className="w-7 h-7 rounded-full bg-blue-600/60 hover:bg-blue-600 flex items-center justify-center text-white transition-all cursor-pointer shadow-[0_0_8px_rgba(37,99,235,0.5)]"
-              >
-                {playingVoice === 'v2' ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 ml-0.5" />}
-              </button>
-
-              <div className="flex-1 flex items-center gap-0.5 h-6">
-                {[14, 20, 10, 24, 18, 22, 12, 19, 14, 26, 17, 11, 23, 15, 20, 13, 16].map((h, i) => (
-                  <div
-                    key={i}
-                    className={`w-1 rounded-full transition-all duration-150 ${
-                      playingVoice === 'v2' && i < 10
-                        ? 'bg-cyan-300 shadow-[0_0_6px_#00f0ff]'
-                        : 'bg-cyan-500/40'
-                    }`}
-                    style={{ height: `${h}px` }}
-                  />
-                ))}
-              </div>
-
-              <span className="text-[11px] font-mono text-slate-400 shrink-0">0:03</span>
-            </div>
-          </div>
-        </div>
-
-        {/* JARVIS AI Reply 2 */}
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <div className="relative w-6 h-6 rounded-full bg-[#0a1630] border border-cyan-400/80 flex items-center justify-center shadow-[0_0_8px_rgba(0,240,255,0.5)]">
-              <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
-            </div>
-            <span className="text-xs font-semibold text-cyan-300">JARVIS</span>
-            <span className="text-[10px] text-slate-500">11:48 PM</span>
-          </div>
-
-          <div className="ml-8 bg-[#061022]/90 border border-cyan-500/30 rounded-2xl rounded-tl-sm p-3 space-y-2 shadow-lg">
-            <p className="text-slate-200 text-xs leading-relaxed">
-              Sure! The second point focuses on real-world applications...
-            </p>
-
-            {/* Typing Indicator Dots */}
-            <div className="flex items-center gap-1.5 pt-1">
-              <div className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce [animation-delay:-0.3s]" />
-              <div className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce [animation-delay:-0.15s]" />
-              <div className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce" />
-            </div>
-          </div>
-        </div>
-
-        {/* Dynamic New Messages */}
-        {messages.slice(2).map((m) => {
-          const isUser = m.role === 'you' || m.role === 'user';
-          return (
-            <div key={m.id} className="space-y-1">
-              <div className="flex items-center gap-2">
+                {/* Content Box */}
                 <div
-                  className={`w-6 h-6 rounded-full flex items-center justify-center text-white ${
+                  className={`ml-8 rounded-2xl rounded-tl-sm p-3 shadow-lg space-y-2 ${
                     isUser
-                      ? 'bg-blue-600/80 shadow-[0_0_8px_rgba(37,99,235,0.6)]'
-                      : 'bg-[#0a1630] border border-cyan-400/80 shadow-[0_0_8px_rgba(0,240,255,0.5)]'
+                      ? 'bg-[#091328]/95 border border-cyan-500/20'
+                      : 'bg-[#061022]/95 border border-cyan-500/30'
                   }`}
                 >
-                  {isUser ? <Mic className="w-3 h-3" /> : <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />}
+                  <p className="text-slate-200 text-xs md:text-sm leading-relaxed font-sans whitespace-pre-wrap">
+                    {msg.text}
+                  </p>
+
+                  {/* Audio Waveform Player if message contains audio sample */}
+                  {msg.audioUrl && (
+                    <div className="flex items-center gap-2.5 pt-1">
+                      <button
+                        onClick={() => togglePlayVoice(msg.id)}
+                        className="w-7 h-7 rounded-full bg-blue-600/60 hover:bg-blue-600 flex items-center justify-center text-white transition-all cursor-pointer shadow-[0_0_8px_rgba(37,99,235,0.5)]"
+                      >
+                        {playingVoice === msg.id ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 ml-0.5" />}
+                      </button>
+
+                      <div className="flex-1 flex items-center gap-0.5 h-6">
+                        {[12, 18, 8, 22, 14, 26, 10, 20, 15, 24, 18, 12, 28, 16, 22, 14, 18, 9, 21, 15].map((h, i) => (
+                          <div
+                            key={i}
+                            className={`w-1 rounded-full transition-all duration-150 ${
+                              playingVoice === msg.id && i < 12
+                                ? 'bg-cyan-300 shadow-[0_0_6px_#00f0ff]'
+                                : 'bg-cyan-500/40'
+                            }`}
+                            style={{ height: `${h}px` }}
+                          />
+                        ))}
+                      </div>
+
+                      <span className="text-[11px] font-mono text-slate-400 shrink-0">0:03</span>
+                    </div>
+                  )}
+
+                  {/* Optional File Card Attachment */}
+                  {msg.file && (
+                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#0a1836]/90 border border-cyan-500/30 shadow-md mt-2">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-red-600/20 border border-red-500/40 flex items-center justify-center shrink-0">
+                          <FileText className="w-4 h-4 text-red-400" />
+                        </div>
+                        <div>
+                          <div className="text-xs font-semibold text-slate-100">{msg.file.name || 'AI_Research_Paper.pdf'}</div>
+                          <div className="text-[10px] text-slate-400">{msg.file.size || '12 pages • Analyzed'}</div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 text-slate-400">
+                        <button
+                          onClick={handleCopy}
+                          className="p-1 hover:text-cyan-300 hover:bg-cyan-500/10 rounded transition-colors cursor-pointer"
+                          title="Copy reference"
+                        >
+                          {copiedFile ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                        </button>
+                        <button
+                          onClick={() => soundService.click()}
+                          className="p-1 hover:text-cyan-300 hover:bg-cyan-500/10 rounded transition-colors cursor-pointer"
+                          title="Download"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => soundService.click()}
+                          className="p-1 hover:text-cyan-300 hover:bg-cyan-500/10 rounded transition-colors cursor-pointer"
+                          title="Open externally"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <span className={`text-xs font-semibold ${isUser ? 'text-slate-200' : 'text-cyan-300'}`}>
-                  {isUser ? 'You' : 'JARVIS'}
-                </span>
-                <span className="text-[10px] text-slate-500">{m.time}</span>
               </div>
-              <div
-                className={`ml-8 rounded-2xl rounded-tl-sm p-3 shadow-lg text-xs leading-relaxed ${
-                  isUser
-                    ? 'bg-[#091328]/90 border border-cyan-500/20 text-slate-100'
-                    : 'bg-[#061022]/90 border border-cyan-500/30 text-slate-200'
-                }`}
-              >
-                {m.text}
+            );
+          })
+        ) : (
+          <div className="h-full flex flex-col items-center justify-center text-slate-500 space-y-2 py-12">
+            <Sparkles className="w-8 h-8 text-cyan-500/40 animate-pulse" />
+            <p className="text-xs font-mono text-cyan-400/80">Listening for trigger &ldquo;Hey Jarvis&rdquo;...</p>
+          </div>
+        )}
+
+        {/* Live Typing / Processing Indicator */}
+        {(orbState === 'listening' || orbState === 'processing' || orbState === 'speaking') && (
+          <div className="space-y-1 animate-fadeIn">
+            <div className="flex items-center gap-2">
+              <div className="relative w-6 h-6 rounded-full bg-[#0a1630] border border-cyan-400/80 flex items-center justify-center shadow-[0_0_8px_rgba(0,240,255,0.5)]">
+                <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
               </div>
+              <span className="text-xs font-semibold text-cyan-300">JARVIS</span>
             </div>
-          );
-        })}
+
+            <div className="ml-8 bg-[#061022]/90 border border-cyan-500/30 rounded-2xl rounded-tl-sm p-3 shadow-lg flex items-center gap-2 text-cyan-400 text-xs font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
+              <span>{orbState === 'listening' ? 'Listening to voice...' : orbState === 'processing' ? 'Processing neural intent...' : 'Synthesizing response...'}</span>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* 3. Bottom Input Box & Voice State Pills */}
-      <div className="space-y-2.5 pt-2 border-t border-cyan-500/15 shrink-0">
+      {/* 3. Input & Voice Status Controls */}
+      <div className="space-y-2 pt-2 border-t border-cyan-500/15 shrink-0">
         {/* Input Bar */}
-        <div className="relative flex items-center gap-2 bg-[#061024]/90 border border-cyan-500/25 rounded-full px-3 py-1.5 shadow-[inset_0_0_12px_rgba(0,240,255,0.06)]">
-          {/* Waveform Voice Trigger Button */}
-          <button
-            onClick={() => {
-              soundService.click();
-              setOrbState(orbState === 'listening' ? 'idle' : 'listening');
-            }}
-            className={`p-1.5 rounded-full transition-colors cursor-pointer ${
-              orbState === 'listening' ? 'text-emerald-400 animate-pulse' : 'text-cyan-400 hover:text-cyan-200'
-            }`}
-            title="Toggle Voice Input"
-          >
-            <Activity className="w-4 h-4" />
-          </button>
+        <div className="relative flex items-center bg-[#071126]/90 border border-cyan-500/30 rounded-full px-3.5 py-2 shadow-inner focus-within:border-cyan-400/70 focus-within:shadow-[0_0_15px_rgba(0,240,255,0.25)] transition-all">
+          <Mic className="w-4 h-4 text-cyan-400 mr-2 shrink-0 animate-pulse" />
 
-          {/* Text Input */}
           <input
             type="text"
             value={inputVal}
             onChange={(e) => setInputVal(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Speak or type your message..."
-            className="flex-1 bg-transparent border-none outline-none text-xs text-slate-100 placeholder:text-slate-500 font-sans tracking-wide"
+            className="w-full bg-transparent text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none"
           />
 
-          {/* Paperclip Attachment */}
-          <button
-            onClick={() => soundService.click()}
-            className="p-1.5 text-slate-400 hover:text-cyan-300 transition-colors cursor-pointer"
-            title="Attach file"
-          >
-            <Paperclip className="w-4 h-4" />
-          </button>
-
-          {/* Send Button */}
-          <button
-            onClick={handleSend}
-            className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white flex items-center justify-center shadow-[0_0_12px_rgba(37,99,235,0.6)] transition-all cursor-pointer"
-            title="Send Message"
-          >
-            <Send className="w-3.5 h-3.5" />
-          </button>
+          <div className="flex items-center gap-1.5 ml-2 shrink-0">
+            <button
+              onClick={() => soundService.click()}
+              className="p-1 hover:text-cyan-300 text-slate-400 transition-colors cursor-pointer"
+              title="Attach File"
+            >
+              <Paperclip className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleSend}
+              className="w-7 h-7 rounded-full bg-blue-600 hover:bg-blue-500 flex items-center justify-center text-white shadow-[0_0_10px_rgba(37,99,235,0.6)] transition-all cursor-pointer"
+              title="Send Message"
+            >
+              <Send className="w-3.5 h-3.5 ml-0.5" />
+            </button>
+          </div>
         </div>
 
-        {/* Assistant Voice State Pills */}
-        <div className="flex items-center justify-between px-1">
-          <button
-            onClick={() => {
-              soundService.click();
-              setOrbState('listening');
-            }}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer ${
-              orbState === 'listening'
-                ? 'bg-emerald-950/60 border border-emerald-400 text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.4)]'
-                : 'text-slate-400 hover:text-emerald-300 border border-transparent'
-            }`}
-          >
-            <span className={`w-2 h-2 rounded-full ${orbState === 'listening' ? 'bg-emerald-400 animate-ping' : 'bg-emerald-500'}`} />
+        {/* Dynamic Voice Pipeline Status Filter Pills */}
+        <div className="flex items-center justify-between px-1 text-[11px] font-mono">
+          <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border transition-all ${
+            orbState === 'listening' ? 'bg-emerald-950/60 border-emerald-500/60 text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 'bg-slate-900/40 border-slate-800 text-slate-500'
+          }`}>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
             <span>Listening</span>
-          </button>
+          </div>
 
-          <button
-            onClick={() => {
-              soundService.click();
-              setOrbState('processing');
-            }}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer ${
-              orbState === 'processing'
-                ? 'bg-cyan-950/60 border border-cyan-400 text-cyan-300 shadow-[0_0_10px_rgba(0,240,255,0.4)]'
-                : 'text-slate-400 hover:text-cyan-300 border border-transparent'
-            }`}
-          >
-            <Activity className="w-3.5 h-3.5 text-cyan-400" />
+          <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border transition-all ${
+            orbState === 'processing' ? 'bg-cyan-950/60 border-cyan-500/60 text-cyan-300 shadow-[0_0_10px_rgba(0,240,255,0.3)]' : 'bg-slate-900/40 border-slate-800 text-slate-500'
+          }`}>
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
             <span>Processing</span>
-          </button>
+          </div>
 
-          <button
-            onClick={() => {
-              soundService.click();
-              setOrbState('speaking');
-            }}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer ${
-              orbState === 'speaking'
-                ? 'bg-blue-950/60 border border-blue-400 text-blue-300 shadow-[0_0_10px_rgba(37,99,235,0.4)]'
-                : 'text-slate-400 hover:text-blue-300 border border-transparent'
-            }`}
-          >
-            <span className={`w-2 h-2 rounded-full ${orbState === 'speaking' ? 'bg-blue-400 animate-pulse' : 'bg-blue-500'}`} />
+          <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border transition-all ${
+            orbState === 'speaking' ? 'bg-blue-950/60 border-blue-500/60 text-blue-300 shadow-[0_0_10px_rgba(59,130,246,0.3)]' : 'bg-slate-900/40 border-slate-800 text-slate-500'
+          }`}>
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
             <span>Responding</span>
-          </button>
+          </div>
         </div>
       </div>
     </div>

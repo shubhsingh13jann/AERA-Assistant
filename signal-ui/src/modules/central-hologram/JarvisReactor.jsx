@@ -3,7 +3,7 @@ import './JarvisReactor.css';
 
 /**
  * JarvisReactor - Pure Digital Holographic Energy Core Component
- * SVG + CSS Transforms + 60 FPS Canvas Particles
+ * SVG + GPU Keyframe Animations + 60 FPS Canvas Particles
  * Supported States: 'idle' | 'listening' | 'thinking' | 'responding'
  */
 export const JarvisReactor = ({ state = 'idle', className = '' }) => {
@@ -17,7 +17,7 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
     let animationId;
 
     const particles = [];
-    const particleCount = 38;
+    const particleCount = 42;
 
     const w = 600;
     const h = 600;
@@ -29,10 +29,10 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
     for (let i = 0; i < particleCount; i++) {
       particles.push({
         angle: Math.random() * Math.PI * 2,
-        radius: 40 + Math.random() * 180,
+        radius: 45 + Math.random() * 190,
         speed: (0.005 + Math.random() * 0.015) * (Math.random() > 0.5 ? 1 : -1),
-        yOffset: Math.random() * 140 - 70,
-        size: 1 + Math.random() * 2.2,
+        yOffset: Math.random() * 150 - 75,
+        size: 1.2 + Math.random() * 2.2,
         alpha: 0.3 + Math.random() * 0.7,
         pulseSpeed: 0.02 + Math.random() * 0.03,
       });
@@ -52,13 +52,13 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
       let speedMult = 1;
       if (state === 'listening') speedMult = 1.6;
       if (state === 'thinking') speedMult = 2.4;
-      if (state === 'responding') speedMult = 3.0;
+      if (state === 'responding') speedMult = 3.2;
 
       particles.forEach((p) => {
         p.angle += p.speed * speedMult;
-        p.yOffset -= 0.3 * speedMult;
-        if (p.yOffset < -160) {
-          p.yOffset = 140;
+        p.yOffset -= 0.35 * speedMult;
+        if (p.yOffset < -165) {
+          p.yOffset = 145;
           p.angle = Math.random() * Math.PI * 2;
         }
 
@@ -66,7 +66,7 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
         const py = cy + Math.sin(p.angle) * (p.radius * 0.35) + p.yOffset;
 
         p.alpha += Math.sin(now * p.pulseSpeed) * 0.015;
-        const clampedAlpha = Math.max(0.1, Math.min(0.9, p.alpha));
+        const clampedAlpha = Math.max(0.1, Math.min(0.95, p.alpha));
 
         ctx.fillStyle = `rgba(0, 240, 255, ${clampedAlpha})`;
         ctx.beginPath();
@@ -74,7 +74,7 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
         ctx.fill();
 
         if (p.size > 2) {
-          ctx.fillStyle = `rgba(255, 255, 255, ${clampedAlpha * 0.8})`;
+          ctx.fillStyle = `rgba(255, 255, 255, ${clampedAlpha * 0.85})`;
           ctx.beginPath();
           ctx.arc(px, py, p.size * 0.5, 0, Math.PI * 2);
           ctx.fill();
@@ -99,7 +99,7 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
       {/* 2D Canvas Particle Overlay */}
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 w-full h-full pointer-events-none z-10 opacity-85"
+        className="absolute inset-0 w-full h-full pointer-events-none z-10 opacity-90"
       />
 
       {/* Pure Digital Holographic SVG Reactor */}
@@ -110,8 +110,8 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
         <defs>
           {/* Cyan Energy Glow Filters */}
           <filter id="coreGlow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="12" result="blur1" />
-            <feGaussianBlur stdDeviation="24" result="blur2" />
+            <feGaussianBlur stdDeviation="10" result="blur1" />
+            <feGaussianBlur stdDeviation="22" result="blur2" />
             <feMerge>
               <feMergeNode in="blur2" />
               <feMergeNode in="blur1" />
@@ -120,7 +120,7 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
           </filter>
 
           <filter id="ringGlow" x="-30%" y="-30%" width="160%" height="160%">
-            <feGaussianBlur stdDeviation="6" result="blur" />
+            <feGaussianBlur stdDeviation="5" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
@@ -130,21 +130,21 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
           {/* Central Radial Gradient */}
           <radialGradient id="centralFusionGrad" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
-            <stop offset="35%" stopColor="#00f0ff" stopOpacity="0.95" />
-            <stop offset="70%" stopColor="#0080ff" stopOpacity="0.6" />
+            <stop offset="30%" stopColor="#00f0ff" stopOpacity="0.95" />
+            <stop offset="65%" stopColor="#0080ff" stopOpacity="0.65" />
             <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0" />
           </radialGradient>
 
           {/* Upward Light Beam Linear Gradient */}
           <linearGradient id="upwardBeamGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-            <stop offset="0%" stopColor="#00f0ff" stopOpacity="0.35" />
+            <stop offset="0%" stopColor="#00f0ff" stopOpacity="0.38" />
             <stop offset="60%" stopColor="#00a0ff" stopOpacity="0.08" />
             <stop offset="100%" stopColor="#00f0ff" stopOpacity="0" />
           </linearGradient>
 
           {/* Sweep Radar Gradient */}
           <radialGradient id="radarSweepGrad" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#00f0ff" stopOpacity="0.4" />
+            <stop offset="0%" stopColor="#00f0ff" stopOpacity="0.45" />
             <stop offset="100%" stopColor="#00f0ff" stopOpacity="0" />
           </radialGradient>
         </defs>
@@ -153,22 +153,22 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
         <g className="projection-base-group">
           {/* Upward Volumetric Light Columns */}
           <polygon
-            points="260,650 540,650 480,380 320,380"
+            points="250,650 550,650 490,380 310,380"
             fill="url(#upwardBeamGrad)"
           />
-          <line x1="300" y1="650" x2="350" y2="380" stroke="rgba(0, 240, 255, 0.25)" strokeWidth="1" />
-          <line x1="360" y1="650" x2="380" y2="380" stroke="rgba(0, 240, 255, 0.35)" strokeWidth="1" />
-          <line x1="440" y1="650" x2="420" y2="380" stroke="rgba(0, 240, 255, 0.35)" strokeWidth="1" />
-          <line x1="500" y1="650" x2="450" y2="380" stroke="rgba(0, 240, 255, 0.25)" strokeWidth="1" />
+          <line x1="290" y1="650" x2="340" y2="380" stroke="rgba(0, 240, 255, 0.3)" strokeWidth="1" />
+          <line x1="350" y1="650" x2="375" y2="380" stroke="rgba(0, 240, 255, 0.4)" strokeWidth="1.2" />
+          <line x1="450" y1="650" x2="425" y2="380" stroke="rgba(0, 240, 255, 0.4)" strokeWidth="1.2" />
+          <line x1="510" y1="650" x2="460" y2="380" stroke="rgba(0, 240, 255, 0.3)" strokeWidth="1" />
 
           {/* Base Concentric Projection Rings */}
-          <ellipse cx="400" cy="650" rx="160" ry="24" stroke="rgba(0, 180, 255, 0.5)" strokeWidth="3" fill="none" />
-          <ellipse cx="400" cy="646" rx="125" ry="18" stroke="rgba(0, 240, 255, 0.85)" strokeWidth="2.5" fill="none" />
-          <ellipse cx="400" cy="642" rx="75" ry="11" stroke="rgba(180, 250, 255, 0.95)" strokeWidth="2" fill="none" />
+          <ellipse cx="400" cy="650" rx="165" ry="25" stroke="rgba(0, 180, 255, 0.5)" strokeWidth="3" fill="none" />
+          <ellipse cx="400" cy="646" rx="130" ry="19" stroke="rgba(0, 240, 255, 0.85)" strokeWidth="2.5" fill="none" />
+          <ellipse cx="400" cy="642" rx="80" ry="12" stroke="rgba(180, 250, 255, 0.95)" strokeWidth="2" fill="none" />
 
           {/* Rotating Outer Base Ring Marks */}
           <g className="spin-base-ring">
-            <ellipse cx="400" cy="650" rx="175" ry="26" stroke="rgba(0, 240, 255, 0.4)" strokeWidth="1.5" strokeDasharray="12 18" fill="none" />
+            <ellipse cx="400" cy="650" rx="180" ry="27" stroke="rgba(0, 240, 255, 0.45)" strokeWidth="1.5" strokeDasharray="12 18" fill="none" />
           </g>
         </g>
 
@@ -177,10 +177,10 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
           <ellipse
             cx="400"
             cy="380"
-            rx="240"
-            ry="65"
-            stroke="rgba(0, 240, 255, 0.4)"
-            strokeWidth="1.5"
+            rx="245"
+            ry="68"
+            stroke="rgba(0, 240, 255, 0.45)"
+            strokeWidth="1.6"
             strokeDasharray="14 10 4 10"
             fill="none"
             transform="rotate(-18 400 380)"
@@ -189,10 +189,10 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
           <ellipse
             cx="400"
             cy="380"
-            rx="250"
-            ry="75"
-            stroke="rgba(139, 92, 246, 0.35)"
-            strokeWidth="1.2"
+            rx="255"
+            ry="78"
+            stroke="rgba(139, 92, 246, 0.4)"
+            strokeWidth="1.4"
             strokeDasharray="30 15 8 15"
             fill="none"
             transform="rotate(24 400 380)"
@@ -203,8 +203,41 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
         {/* 3. MAIN CIRCULAR REACTOR HUD RINGS (Centered at x=400, y=380) */}
 
         {/* Outer Continuous HUD Rim */}
-        <circle cx="400" cy="380" r="195" stroke="rgba(0, 200, 255, 0.35)" strokeWidth="1" fill="none" />
-        <circle cx="400" cy="380" r="185" stroke="rgba(0, 240, 255, 0.65)" strokeWidth="1.5" fill="none" />
+        <circle cx="400" cy="380" r="198" stroke="rgba(0, 200, 255, 0.4)" strokeWidth="1" fill="none" />
+        <circle cx="400" cy="380" r="188" stroke="rgba(0, 240, 255, 0.7)" strokeWidth="1.8" fill="none" />
+
+        {/* 10 GLOWING HOLOGRAPHIC CYAN ENERGY BLOCKS AROUND RING */}
+        <g className="spin-clockwise-slow">
+          {Array.from({ length: 10 }).map((_, i) => {
+            const ang = i * ((Math.PI * 2) / 10) - Math.PI / 2;
+            const radius = 175;
+            const bx = 400 + Math.cos(ang) * radius;
+            const by = 380 + Math.sin(ang) * radius;
+            const rotDeg = (ang * 180) / Math.PI + 90;
+
+            return (
+              <g key={i} transform={`translate(${bx}, ${by}) rotate(${rotDeg})`} filter="url(#ringGlow)">
+                {/* Outer Glass Container */}
+                <rect
+                  x="-15"
+                  y="-25"
+                  width="30"
+                  height="50"
+                  rx="7"
+                  fill="rgba(2, 24, 52, 0.9)"
+                  stroke="rgba(0, 240, 255, 0.95)"
+                  strokeWidth="2"
+                />
+                {/* Horizontal Internal Glowing Energy Bands */}
+                <line x1="-11" y1="-17" x2="11" y2="-17" stroke="#ffffff" strokeWidth="2" />
+                <line x1="-13" y1="-8.5" x2="13" y2="-8.5" stroke="#00f0ff" strokeWidth="2.5" />
+                <line x1="-14" y1="0" x2="14" y2="0" stroke="#00f0ff" strokeWidth="3" />
+                <line x1="-13" y1="8.5" x2="13" y2="8.5" stroke="#00f0ff" strokeWidth="2.5" />
+                <line x1="-11" y1="17" x2="11" y2="17" stroke="#ffffff" strokeWidth="2" />
+              </g>
+            );
+          })}
+        </g>
 
         {/* Outer Clockwise Arc Ring with HUD Markers */}
         <g className="spin-clockwise-slow" filter="url(#ringGlow)">
@@ -217,11 +250,6 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
             strokeDasharray="60 12 120 12 40 12"
             fill="none"
           />
-          {/* Outer Marker Dots */}
-          <circle cx="575" cy="380" r="3.5" fill="#ffffff" />
-          <circle cx="225" cy="380" r="3.5" fill="#ffffff" />
-          <circle cx="400" cy="205" r="3.5" fill="#ffffff" />
-          <circle cx="400" cy="555" r="3.5" fill="#ffffff" />
         </g>
 
         {/* Counter-Clockwise Segmented Ring */}
@@ -229,17 +257,17 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
           <circle
             cx="400"
             cy="380"
-            r="155"
+            r="142"
             stroke="rgba(0, 240, 255, 0.9)"
-            strokeWidth="4"
+            strokeWidth="3.5"
             strokeDasharray="25 10 45 10 15 10 60 10"
             fill="none"
           />
           <circle
             cx="400"
             cy="380"
-            r="145"
-            stroke="rgba(139, 92, 246, 0.55)"
+            r="132"
+            stroke="rgba(139, 92, 246, 0.6)"
             strokeWidth="1.5"
             strokeDasharray="8 8"
             fill="none"
@@ -249,7 +277,7 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
         {/* Inner Radar Arc Sweep */}
         <g className="radar-scan-sweep">
           <path
-            d="M 400 380 L 530 380 A 130 130 0 0 0 400 250 Z"
+            d="M 400 380 L 525 380 A 125 125 0 0 0 400 255 Z"
             fill="url(#radarSweepGrad)"
           />
         </g>
@@ -259,8 +287,8 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
           <circle
             cx="400"
             cy="380"
-            r="125"
-            stroke="rgba(0, 240, 255, 0.75)"
+            r="115"
+            stroke="rgba(0, 240, 255, 0.8)"
             strokeWidth="2"
             strokeDasharray="4 8"
             fill="none"
@@ -272,8 +300,8 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
           <circle
             cx="400"
             cy="380"
-            r="105"
-            stroke="rgba(255, 255, 255, 0.9)"
+            r="98"
+            stroke="rgba(255, 255, 255, 0.95)"
             strokeWidth="2.5"
             strokeDasharray="40 20 80 20"
             fill="none"
@@ -286,13 +314,36 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
             cx="400"
             cy="380"
             r="40"
-            stroke="rgba(0, 240, 255, 0.9)"
+            stroke="rgba(0, 240, 255, 0.95)"
             fill="none"
             className="wave-expand-pulse"
           />
         )}
 
-        {/* 4. MASTER CENTRAL TRIANGULAR GEOMETRIC ENERGY CORE */}
+        {/* 4. 10 RADIAL PLASMA SPOKES */}
+        <g filter="url(#ringGlow)">
+          {Array.from({ length: 10 }).map((_, i) => {
+            const ang = i * ((Math.PI * 2) / 10) - Math.PI / 2;
+            const x1 = 400 + Math.cos(ang) * 45;
+            const y1 = 380 + Math.sin(ang) * 45;
+            const x2 = 400 + Math.cos(ang) * 148;
+            const y2 = 380 + Math.sin(ang) * 148;
+
+            return (
+              <line
+                key={i}
+                x1={x1}
+                y1={y1}
+                x2={x2}
+                y2={y2}
+                stroke="rgba(0, 240, 255, 0.85)"
+                strokeWidth="2"
+              />
+            );
+          })}
+        </g>
+
+        {/* 5. MASTER CENTRAL TRIANGULAR GEOMETRIC ENERGY CORE */}
         <g
           className={`reactor-core-group ${
             currentState === 'thinking' || currentState === 'responding'
@@ -301,23 +352,18 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
           }`}
           filter="url(#coreGlow)"
         >
-          {/* Radial Energy Spokes */}
-          <line x1="400" y1="380" x2="400" y2="280" stroke="rgba(0, 240, 255, 0.8)" strokeWidth="2" />
-          <line x1="400" y1="380" x2="486" y2="430" stroke="rgba(0, 240, 255, 0.8)" strokeWidth="2" />
-          <line x1="400" y1="380" x2="314" y2="430" stroke="rgba(0, 240, 255, 0.8)" strokeWidth="2" />
-
           {/* Central Plasma Glow Circle */}
           <circle
             cx="400"
             cy="380"
-            r="85"
+            r="75"
             fill="url(#centralFusionGrad)"
           />
 
           {/* Outer Layer Inverted JARVIS Energy Triangle */}
           <polygon
-            points="400,455 465,340 335,340"
-            fill="rgba(0, 240, 255, 0.15)"
+            points="400,448 458,345 342,345"
+            fill="rgba(0, 240, 255, 0.2)"
             stroke="rgba(0, 240, 255, 0.95)"
             strokeWidth="3"
             strokeLinejoin="round"
@@ -325,16 +371,16 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
 
           {/* Inner Layer Accent Inverted Triangle */}
           <polygon
-            points="400,438 450,348 350,348"
-            fill="rgba(255, 255, 255, 0.25)"
-            stroke="rgba(255, 255, 255, 1)"
+            points="400,432 444,352 356,352"
+            fill="rgba(255, 255, 255, 0.3)"
+            stroke="#ffffff"
             strokeWidth="2"
             strokeLinejoin="round"
           />
 
           {/* Inner Cutout Geometric Framework */}
           <polygon
-            points="400,418 432,360 368,360"
+            points="400,414 428,362 372,362"
             fill="none"
             stroke="rgba(0, 240, 255, 0.9)"
             strokeWidth="1.5"

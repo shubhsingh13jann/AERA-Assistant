@@ -9,6 +9,7 @@
   justify-content: center;
   overflow: hidden;
   user-select: none;
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* GPU hardware-accelerated layer optimizations */
@@ -18,7 +19,8 @@
   max-width: 580px;
   max-height: 580px;
   transform-origin: center center;
-  will-change: transform;
+  will-change: transform, filter;
+  transition: filter 0.5s ease-in-out, opacity 0.5s ease-in-out;
 }
 
 /* 1. CONTINUOUS ROTATION KEYFRAMES */
@@ -78,10 +80,15 @@
   transform-origin: 400px 380px;
 }
 
+.pulse-core-warning {
+  animation: corePulseWarning 0.4s ease-in-out infinite alternate;
+  transform-origin: 400px 380px;
+}
+
 @keyframes corePulseSoft {
   0% {
     transform: scale(0.96);
-    opacity: 0.88;
+    opacity: 0.85;
     filter: drop-shadow(0 0 15px rgba(0, 240, 255, 0.8));
   }
   100% {
@@ -101,6 +108,19 @@
     transform: scale(1.12);
     opacity: 1;
     filter: drop-shadow(0 0 45px rgba(0, 240, 255, 1)) drop-shadow(0 0 65px rgba(255, 255, 255, 0.9));
+  }
+}
+
+@keyframes corePulseWarning {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+    filter: drop-shadow(0 0 30px rgba(255, 0, 85, 0.9));
+  }
+  100% {
+    transform: scale(1.15);
+    opacity: 1;
+    filter: drop-shadow(0 0 60px rgba(255, 0, 85, 1)) drop-shadow(0 0 80px rgba(255, 60, 0, 1));
   }
 }
 
@@ -140,9 +160,21 @@
   }
 }
 
-/* 5. STATE MODIFIERS (IDLE, LISTENING, THINKING, RESPONDING) */
+/* 5. DYNAMIC STATE MODIFIERS */
 
-/* IDLE STATE */
+/* DORMANT MODE (No conversation / Low power idle) */
+.jarvis-reactor-container[data-state="dormant"] .jarvis-reactor-svg {
+  opacity: 0.45;
+  filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.3));
+}
+.jarvis-reactor-container[data-state="dormant"] .spin-clockwise-slow {
+  animation-duration: 36s;
+}
+.jarvis-reactor-container[data-state="dormant"] .spin-counter-slow {
+  animation-duration: 30s;
+}
+
+/* IDLE MODE */
 .jarvis-reactor-container[data-state="idle"] .spin-clockwise-slow {
   animation-duration: 24s;
 }
@@ -151,39 +183,55 @@
 }
 
 /* LISTENING STATE */
-.jarvis-reactor-container[data-state="listening"] .spin-clockwise-slow {
-  animation-duration: 14s;
+.jarvis-reactor-container[data-state="listening"] .jarvis-reactor-svg {
+  opacity: 1;
+  filter: drop-shadow(0 0 25px rgba(0, 240, 255, 0.8));
 }
-.jarvis-reactor-container[data-state="listening"] .spin-counter-slow {
+.jarvis-reactor-container[data-state="listening"] .spin-clockwise-slow {
   animation-duration: 12s;
 }
-.jarvis-reactor-container[data-state="listening"] .reactor-core-group {
-  filter: drop-shadow(0 0 40px rgba(0, 240, 255, 1)) drop-shadow(0 0 60px rgba(0, 150, 255, 0.8));
+.jarvis-reactor-container[data-state="listening"] .spin-counter-slow {
+  animation-duration: 10s;
 }
 
 /* THINKING STATE */
-.jarvis-reactor-container[data-state="thinking"] .spin-clockwise-slow {
-  animation-duration: 7s;
+.jarvis-reactor-container[data-state="thinking"] .jarvis-reactor-svg {
+  opacity: 1;
+  filter: drop-shadow(0 0 35px rgba(0, 240, 255, 0.9));
 }
-.jarvis-reactor-container[data-state="thinking"] .spin-counter-slow {
+.jarvis-reactor-container[data-state="thinking"] .spin-clockwise-slow {
   animation-duration: 6s;
 }
-.jarvis-reactor-container[data-state="thinking"] .radar-scan-sweep {
-  animation-duration: 1.2s;
+.jarvis-reactor-container[data-state="thinking"] .spin-counter-slow {
+  animation-duration: 5s;
 }
-.jarvis-reactor-container[data-state="thinking"] .reactor-core-group {
-  animation-duration: 0.8s;
-  filter: drop-shadow(0 0 45px rgba(0, 240, 255, 1)) drop-shadow(0 0 70px rgba(139, 92, 246, 0.9));
+.jarvis-reactor-container[data-state="thinking"] .radar-scan-sweep {
+  animation-duration: 1s;
 }
 
 /* RESPONDING STATE */
-.jarvis-reactor-container[data-state="responding"] .spin-clockwise-slow {
-  animation-duration: 5s;
+.jarvis-reactor-container[data-state="responding"] .jarvis-reactor-svg {
+  opacity: 1;
+  filter: drop-shadow(0 0 45px rgba(255, 255, 255, 0.95)) drop-shadow(0 0 70px rgba(0, 240, 255, 1));
 }
-.jarvis-reactor-container[data-state="responding"] .spin-counter-slow {
+.jarvis-reactor-container[data-state="responding"] .spin-clockwise-slow {
   animation-duration: 4s;
 }
-.jarvis-reactor-container[data-state="responding"] .reactor-core-group {
-  transform: scale(1.1);
-  filter: drop-shadow(0 0 55px rgba(255, 255, 255, 1)) drop-shadow(0 0 80px rgba(0, 240, 255, 1));
+.jarvis-reactor-container[data-state="responding"] .spin-counter-slow {
+  animation-duration: 3.5s;
+}
+
+/* ERROR / WARNING STATE (CRIMSON RED MODE) */
+.jarvis-reactor-container[data-state="error"] .jarvis-reactor-svg,
+.jarvis-reactor-container[data-state="warning"] .jarvis-reactor-svg {
+  opacity: 1;
+  filter: drop-shadow(0 0 40px rgba(255, 0, 85, 1)) drop-shadow(0 0 65px rgba(255, 60, 0, 0.9));
+}
+.jarvis-reactor-container[data-state="error"] .spin-clockwise-slow,
+.jarvis-reactor-container[data-state="warning"] .spin-clockwise-slow {
+  animation-duration: 4s;
+}
+.jarvis-reactor-container[data-state="error"] .spin-counter-slow,
+.jarvis-reactor-container[data-state="warning"] .spin-counter-slow {
+  animation-duration: 3s;
 }

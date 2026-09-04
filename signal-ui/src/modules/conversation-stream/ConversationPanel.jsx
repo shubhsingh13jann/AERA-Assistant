@@ -33,18 +33,36 @@ export const ConversationPanel = () => {
     const text = inputVal.trim();
     if (!text) return;
     soundService.click();
-    addConversationMessage('you', text);
     setInputVal('');
 
-    // Simulate JARVIS thinking and responding if not running python pywebview backend
-    setOrbState('processing');
-    setTimeout(() => {
-      setOrbState('speaking');
-      addConversationMessage('assistant', `Directive received: "${text}". Intent pipeline executed successfully.`);
+    // Check if running inside Pywebview Python desktop shell
+    if (window.pywebview && window.pywebview.api && window.pywebview.api.process_text_command) {
+      window.pywebview.api.process_text_command(text);
+      return;
+    }
+
+    // Web Browser Local Intent Fallback Mode
+    addConversationMessage('you', text);
+    setOrbState('listening');
+
+    const lower = text.toLowerCase();
+    if (lower === 'hey jarvis' || lower === 'hi jarvis' || lower === 'jarvis' || lower === 'hello jarvis') {
       setTimeout(() => {
-        setOrbState('idle');
-      }, 2000);
-    }, 1000);
+        setOrbState('speaking');
+        addConversationMessage('assistant', 'Yes boss.');
+        setTimeout(() => setOrbState('idle'), 2000);
+      }, 400);
+      return;
+    }
+
+    setTimeout(() => {
+      setOrbState('processing');
+      setTimeout(() => {
+        setOrbState('speaking');
+        addConversationMessage('assistant', `Directive received: "${text}". Intent pipeline executed successfully.`);
+        setTimeout(() => setOrbState('idle'), 2000);
+      }, 800);
+    }, 300);
   };
 
   const handleKeyDown = (e) => {

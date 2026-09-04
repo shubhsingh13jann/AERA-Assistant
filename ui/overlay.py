@@ -9,6 +9,9 @@ Build the frontend first: cd signal-ui && npm run build
 """
 
 import os
+import json
+import threading
+import time
 import webview
 
 DIST_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "signal-ui", "dist", "index.html"))
@@ -24,7 +27,6 @@ def _evaluate_javascript(script: str) -> None:
     try:
         window.evaluate_js(script)
     except Exception:
-        # The user may have closed the window while the audio loop is running.
         pass
 
 
@@ -33,19 +35,58 @@ def _on_window_closed():
     _window = None
 
 
-import json
-import threading
-import time
-
 try:
     import psutil
 except ImportError:
     psutil = None
 
 
+class JSBridge:
+    def process_text_command(self, text: str) -> None:
+        """Called from frontend when user submits text via keyboard instead of mic."""
+        def worker():
+            from intents.router import route
+            from voice.speaker import speak
+            from storage.db import log_message
+
+            text_clean = text.strip()
+            if not text_clean:
+                return
+
+            set_orb_state("listening")
+            add_message("you", text_clean)
+            log_message("you", text_clean)
+
+            lower = text_clean.lower()
+            if lower in ["hey jarvis", "hi jarvis", "jarvis", "hello jarvis"]:
+                time.sleep(0.2)
+                set_orb_state("speaking")
+                response = "Yes boss."
+                add_message("assistant", response)
+                log_message("assistant", response)
+                speak(response)
+                set_orb_state("idle")
+                return
+
+            set_orb_state("processing")
+            time.sleep(0.3)
+            set_orb_state("speaking")
+            try:
+                response = route(text_clean)
+                add_message("assistant", response)
+                log_message("assistant", response)
+                speak(response)
+            except Exception as e:
+                error_msg = f"Command execution failed: {str(e)}"
+                add_message("assistant", error_msg)
+                log_message("assistant", error_msg)
+            set_orb_state("idle")
+
+        threading.Thread(target=worker, daemon=True).start()
+
+
 def _telemetry_worker():
     """Periodically sample real host metrics and send them to the React UI."""
-    # Warm up CPU percent measurement
     if psutil:
         try:
             psutil.cpu_percent(interval=None)
@@ -78,16 +119,12 @@ def _telemetry_worker():
 
 
 def start_ui(assistant_main):
-    """
-    assistant_main: the blocking wake-word/STT/router loop. pywebview
-    runs it on a background thread automatically via func=, so the GUI
-    event loop and the audio loop don't fight over the main thread -
-    same problem PyQt6 would have had, solved the same way.
-    """
     global _window
+    bridge = JSBridge()
     _window = webview.create_window(
         "Signal // JARVIS MK-85",
         DIST_PATH,
+        js_api=bridge,
         width=1400,
         height=850,
         min_size=(1024, 620),
@@ -96,9 +133,7 @@ def start_ui(assistant_main):
     )
     _window.events.closed += _on_window_closed
 
-    # Start live hardware telemetry streaming thread
     threading.Thread(target=_telemetry_worker, daemon=True).start()
-
     webview.start(assistant_main, _window)
 
 
@@ -107,8 +142,9 @@ def set_orb_state(state: str) -> None:
 
 
 def add_message(role: str, text: str) -> None:
-    safe_text = text.replace("'", "\\'")
+    safe_text = text.replace("'", "\\'").replace("\n", " ")
     _evaluate_javascript(f"window.addMessage('{role}', '{safe_text}')")
+
 
 def set_mic_level(device_name: str, level: int) -> None:
     safe_name = device_name.replace("'", "\\'")

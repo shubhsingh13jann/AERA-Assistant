@@ -70,16 +70,26 @@ class JSBridge:
 
             set_orb_state("processing")
             time.sleep(0.3)
-            set_orb_state("speaking")
             try:
                 response = route(text_clean)
+                resp_lower = response.lower()
+                is_negative = any(kw in resp_lower for kw in ["couldn't", "can't", "failed", "error", "reject", "unable", "not found", "invalid", "unknown"])
+
+                if is_negative:
+                    set_orb_state("error")
+                else:
+                    set_orb_state("speaking")
+
                 add_message("assistant", response)
                 log_message("assistant", response)
                 speak(response)
             except Exception as e:
+                set_orb_state("error")
                 error_msg = f"Command execution failed: {str(e)}"
                 add_message("assistant", error_msg)
                 log_message("assistant", error_msg)
+
+            time.sleep(3.0)
             set_orb_state("idle")
 
         threading.Thread(target=worker, daemon=True).start()

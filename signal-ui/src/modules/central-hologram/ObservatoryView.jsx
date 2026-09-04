@@ -8,33 +8,41 @@ export const ObservatoryView = () => {
   const { orbState, messages, addConversationMessage } = useNexusStore();
   const [overrideState, setOverrideState] = useState(null);
 
-  // Detect error / rejection in conversation messages
+  // Detect error / rejection / failure / not-found / couldn't in conversation messages or orbState
   useEffect(() => {
+    if (orbState === 'error') {
+      soundService.alert();
+      setOverrideState('error');
+      const timer = setTimeout(() => setOverrideState(null), 3500);
+      return () => clearTimeout(timer);
+    }
+
     if (!messages || messages.length === 0) return;
     const lastMsg = messages[messages.length - 1];
     if (lastMsg.role === 'assistant' || lastMsg.role === 'jarvis') {
       const lower = (lastMsg.text || '').toLowerCase();
-      if (
-        lower.includes('error') ||
-        lower.includes('reject') ||
-        lower.includes('unable') ||
-        lower.includes('failed') ||
-        lower.includes('cannot')
-      ) {
+      const errorKeywords = [
+        'error', 'reject', 'unable', 'failed', 'cannot', "couldn't", "can't",
+        'could not', 'not find', 'not found', "didn't find", 'no match',
+        'invalid', 'unknown', 'sorry', 'unrecognized', 'problem', 'issue'
+      ];
+      const isError = errorKeywords.some((kw) => lower.includes(kw));
+      if (isError) {
         soundService.alert();
         setOverrideState('error');
         const timer = setTimeout(() => {
           setOverrideState(null);
-        }, 3200);
+        }, 3500);
         return () => clearTimeout(timer);
       }
     }
-  }, [messages]);
+  }, [messages, orbState]);
 
   // Compute active reactor state: 'dormant' | 'idle' | 'listening' | 'thinking' | 'responding' | 'error'
   let currentState = overrideState;
   if (!currentState) {
-    if (orbState === 'listening') currentState = 'listening';
+    if (orbState === 'error') currentState = 'error';
+    else if (orbState === 'listening') currentState = 'listening';
     else if (orbState === 'processing') currentState = 'thinking';
     else if (orbState === 'speaking') currentState = 'responding';
     else if (messages && messages.length > 2) currentState = 'idle';
@@ -134,7 +142,7 @@ export const ObservatoryView = () => {
             <span className={`w-1 h-2.5 rounded-full animate-pulse [animation-delay:300ms] ${currentState === 'error' ? 'bg-rose-400' : 'bg-cyan-400'}`} />
           </div>
           <span className={`text-xs font-medium tracking-wide ${currentState === 'error' ? 'text-rose-200' : 'text-slate-200'}`}>
-            {currentState === 'error' ? 'Command Rejected' : currentState === 'dormant' ? 'Standby Mode' : 'Listening...'}
+            {currentState === 'error' ? 'Command Failed / Not Found' : currentState === 'dormant' ? 'Standby Mode' : 'Listening...'}
           </span>
         </div>
 
@@ -148,7 +156,7 @@ export const ObservatoryView = () => {
             : 'bg-slate-900/60 border-blue-500/25 text-slate-200 shadow-[0_4px_20px_rgba(0,0,0,0.5)]'
         }`}>
           <span className="text-xs font-medium tracking-wide">
-            {currentState === 'error' ? 'Threat Detected' : currentState === 'dormant' ? 'Core Dormant' : 'Processing...'}
+            {currentState === 'error' ? 'Threat / Warning' : currentState === 'dormant' ? 'Core Dormant' : 'Processing...'}
           </span>
           <div className={`flex items-center gap-1 ${currentState === 'error' ? 'text-rose-400' : 'text-blue-400'}`}>
             <span className={`w-1 h-2.5 rounded-full animate-pulse ${currentState === 'error' ? 'bg-rose-400' : 'bg-blue-400'}`} />

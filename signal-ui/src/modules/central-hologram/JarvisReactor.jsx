@@ -100,29 +100,29 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
 
   const currentState = state || 'idle';
 
-  // Dynamic Color Constants for SVG elements (Lit vs Unlit Hardware OFF mode)
+  // Dynamic Color Constants for SVG elements (Lit vs Unlit Dark Black Metallic OFF mode)
   const mainStroke = isErrorState
     ? 'rgba(255, 30, 80, 0.95)'
     : isDormantState
-    ? 'rgba(56, 189, 248, 0.85)' // Crisp unlit cyan stroke
+    ? '#1e293b' // DARK METALLIC SLATE BLACK (ZERO BLUE!)
     : 'rgba(0, 240, 255, 0.95)';
 
   const secondaryStroke = isErrorState
     ? 'rgba(255, 80, 0, 0.75)'
     : isDormantState
-    ? 'rgba(148, 163, 184, 0.75)' // Crisp unlit slate stroke
+    ? '#0f172a' // DARK BLACK SLATE (ZERO BLUE!)
     : 'rgba(0, 200, 255, 0.75)';
 
   const dimStroke = isErrorState
     ? 'rgba(255, 0, 85, 0.45)'
     : isDormantState
-    ? 'rgba(71, 85, 105, 0.7)' // Clear unlit dark slate stroke
+    ? '#090d16' // DEEP DARK BLACK (ZERO BLUE!)
     : 'rgba(0, 240, 255, 0.45)';
 
   const coreFill = isErrorState
     ? 'url(#redFusionGrad)'
     : isDormantState
-    ? 'rgba(15, 23, 42, 0.95)' // UNLIT SOLID METALLIC CORE (LIGHT OFF!)
+    ? '#050914' // SOLID DARK BLACK CORE (ZERO GLOW/LIGHT!)
     : 'url(#centralFusionGrad)';
 
   const beamFill = isErrorState
@@ -134,13 +134,13 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
   const blockFill = isErrorState
     ? 'rgba(52, 4, 16, 0.95)'
     : isDormantState
-    ? 'rgba(15, 23, 42, 0.95)' // Unlit dark metallic block
+    ? '#090d16' // Dark black container
     : 'rgba(2, 24, 52, 0.9)';
 
   const blockStroke = isErrorState
     ? '#ff0055'
     : isDormantState
-    ? '#38bdf8' // Sharp unlit cyan stroke
+    ? '#334155' // Dark slate black stroke (ZERO BLUE!)
     : '#00f0ff';
 
   return (
@@ -231,7 +231,7 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
           {/* Base Concentric Projection Rings */}
           <ellipse cx="400" cy="650" rx="165" ry="25" stroke={dimStroke} strokeWidth="3" fill="none" />
           <ellipse cx="400" cy="646" rx="130" ry="19" stroke={mainStroke} strokeWidth="2.5" fill="none" />
-          <ellipse cx="400" cy="642" rx="80" ry="12" stroke={isErrorState ? '#ffffff' : 'rgba(180, 250, 255, 0.95)'} strokeWidth="2" fill="none" />
+          <ellipse cx="400" cy="642" rx="80" ry="12" stroke={isErrorState ? '#ffffff' : isDormantState ? '#1e293b' : 'rgba(180, 250, 255, 0.95)'} strokeWidth="2" fill="none" />
 
           {/* Seamless Dotted Ground Rings Rotating Flat on the Floor (strokeDashoffset animation) */}
           <ellipse

@@ -70,7 +70,7 @@ export const ObservatoryView = () => {
 
   const handleAction = (label, query) => {
     soundService.buttonClick();
-    resetInactivityTimer();
+    recordActivity();
     addConversationMessage('user', query);
 
     // If testing error state

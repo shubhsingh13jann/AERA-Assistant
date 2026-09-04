@@ -186,12 +186,19 @@
 
 /* 5. DYNAMIC STATE MODIFIERS */
 
-/* DORMANT MODE (Power-Off Mode: No activity for 10s -> turn off all lights & movement) */
+/* DORMANT MODE (Unpowered Hardware Mode: Reactor core sits on pedestal, lights & movement OFF) */
 .jarvis-reactor-container[data-state="dormant"] .jarvis-reactor-svg {
-  opacity: 0 !important;
-  filter: none !important;
+  opacity: 0.38 !important;
+  filter: grayscale(0.8) opacity(0.6) !important;
   transition: opacity 0.8s ease-in-out, filter 0.8s ease-in-out;
 }
+
+/* Turn off glowing light beams and radar sweep when turned off */
+.jarvis-reactor-container[data-state="dormant"] .radar-scan-sweep {
+  opacity: 0 !important;
+}
+
+/* Stop all rotation, dash spins, and pulsing when turned off */
 .jarvis-reactor-container[data-state="dormant"] .spin-clockwise-slow,
 .jarvis-reactor-container[data-state="dormant"] .spin-clockwise-fast,
 .jarvis-reactor-container[data-state="dormant"] .spin-counter-slow,

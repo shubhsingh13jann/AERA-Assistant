@@ -193,7 +193,8 @@
   transition: opacity 0.6s ease-in-out, filter 0.6s ease-in-out;
 }
 
-/* Turn off light beams, glowing radar sweep, and glow filters when turned off */
+/* Hide floating orbital rings, light beams, glowing radar sweep, and glow filters when turned off */
+.jarvis-reactor-container[data-state="dormant"] .orbital-rings-group,
 .jarvis-reactor-container[data-state="dormant"] .radar-scan-sweep,
 .jarvis-reactor-container[data-state="dormant"] filter {
   opacity: 0 !important;

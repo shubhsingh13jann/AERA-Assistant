@@ -261,8 +261,8 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
           <ellipse
             cx="400"
             cy="380"
-            rx="245"
-            ry="68"
+            rx="195"
+            ry="52"
             stroke={dimStroke}
             strokeWidth="1.6"
             strokeDasharray="14 10 4 10"
@@ -273,8 +273,8 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
           <ellipse
             cx="400"
             cy="380"
-            rx="255"
-            ry="78"
+            rx="202"
+            ry="56"
             stroke={isErrorState ? 'rgba(255, 60, 0, 0.5)' : 'rgba(139, 92, 246, 0.4)'}
             strokeWidth="1.4"
             strokeDasharray="30 15 8 15"
@@ -313,11 +313,11 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
                   strokeWidth="2"
                 />
                 {/* Horizontal Internal Glowing Energy Bands */}
-                <line x1="-11" y1="-17" x2="11" y2="-17" stroke="#ffffff" strokeWidth="2" />
+                <line x1="-11" y1="-17" x2="11" y2="-17" stroke={isDormantState ? "#1e293b" : "#ffffff"} strokeWidth="2" />
                 <line x1="-13" y1="-8.5" x2="13" y2="-8.5" stroke={blockStroke} strokeWidth="2.5" />
                 <line x1="-14" y1="0" x2="14" y2="0" stroke={blockStroke} strokeWidth="3" />
                 <line x1="-13" y1="8.5" x2="13" y2="8.5" stroke={blockStroke} strokeWidth="2.5" />
-                <line x1="-11" y1="17" x2="11" y2="17" stroke="#ffffff" strokeWidth="2" />
+                <line x1="-11" y1="17" x2="11" y2="17" stroke={isDormantState ? "#1e293b" : "#ffffff"} strokeWidth="2" />
               </g>
             );
           })}
@@ -385,7 +385,7 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
             cx="400"
             cy="380"
             r="98"
-            stroke="#ffffff"
+            stroke={isDormantState ? "#334155" : "#ffffff"}
             strokeWidth="2.5"
             strokeDasharray="40 20 80 20"
             fill="none"
@@ -449,7 +449,7 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
           {/* Outer Layer Inverted JARVIS Energy Triangle */}
           <polygon
             points="400,448 458,345 342,345"
-            fill={isErrorState ? 'rgba(255, 0, 85, 0.25)' : 'rgba(0, 240, 255, 0.2)'}
+            fill={isErrorState ? 'rgba(255, 0, 85, 0.25)' : isDormantState ? 'rgba(15, 23, 42, 0.95)' : 'rgba(0, 240, 255, 0.2)'}
             stroke={mainStroke}
             strokeWidth="3"
             strokeLinejoin="round"
@@ -458,8 +458,8 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
           {/* Inner Layer Accent Inverted Triangle */}
           <polygon
             points="400,432 444,352 356,352"
-            fill="rgba(255, 255, 255, 0.3)"
-            stroke="#ffffff"
+            fill={isDormantState ? "rgba(15, 23, 42, 0.95)" : "rgba(255, 255, 255, 0.3)"}
+            stroke={isDormantState ? "#334155" : "#ffffff"}
             strokeWidth="2"
             strokeLinejoin="round"
           />
@@ -477,7 +477,7 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
             cx="400"
             cy="380"
             r="16"
-            fill="#ffffff"
+            fill={isDormantState ? "#0f172a" : "#ffffff"}
             filter="url(#coreGlow)"
           />
           <circle

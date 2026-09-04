@@ -304,6 +304,26 @@ export const useNexusStore = create((set, get) => {
 
       return `Dispatched: "${trimmed}"`;
     },
+
+    tickHardware: () => {
+      hardwareService.tick();
+    },
+
+    updateHostMetrics: (payload) => {
+      if (!payload) return;
+      set((state) => ({
+        coreStatus: {
+          ...state.coreStatus,
+          cpu: payload.cpuPercent ?? state.coreStatus.cpu,
+          memory: payload.memPercent ?? state.coreStatus.memory,
+        },
+        resourceOverview: {
+          ...state.resourceOverview,
+          cpu: Math.round(payload.cpuPercent ?? state.resourceOverview.cpu),
+          memory: Math.round(payload.memPercent ?? state.resourceOverview.memory),
+        },
+      }));
+    },
   };
 });
 

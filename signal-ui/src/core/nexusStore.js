@@ -147,7 +147,21 @@ export const useNexusStore = create((set, get) => {
       });
     },
 
-    setOrbState: (state) => set({ orbState: state }),
+    orbStateTimer: null,
+    setOrbState: (state) => {
+      const currentTimer = get().orbStateTimer;
+      if (currentTimer) clearTimeout(currentTimer);
+
+      let newTimer = null;
+      if (state === 'listening' || state === 'processing' || state === 'speaking') {
+        // Fallback auto-idle reset after 4s if no further state update occurs
+        newTimer = setTimeout(() => {
+          set({ orbState: 'idle' });
+        }, 4000);
+      }
+
+      set({ orbState: state, orbStateTimer: newTimer });
+    },
 
     setMicLevel: (level, device) => set({ micLevel: level, ...(device ? { micDevice: device } : {}) }),
 

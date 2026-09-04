@@ -1,2 +1,3 @@
-export { CentralHologram as default, CentralHologram } from './CentralHologram';
+export { ObservatoryView as default, ObservatoryView } from './ObservatoryView';
+export { CentralHologram } from './CentralHologram';
 

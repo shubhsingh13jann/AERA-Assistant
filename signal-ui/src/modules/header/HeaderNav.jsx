@@ -1,209 +1,82 @@
 import React, { useState, useEffect } from 'react';
 import { useNexusStore } from '../../core/nexusStore';
 import { soundService } from '../../core/soundService';
-import {
-  Mic,
-  Volume2,
-  VolumeX,
-  Maximize2,
-  Tv,
-  MessageSquare,
-  Grid,
-  Shield,
-  ChevronDown,
-  Activity,
-} from 'lucide-react';
+import { Sun, ChevronDown, User } from 'lucide-react';
 
-export const HeaderNav = () => {
-  const {
-    systemStatus,
-    systemSubStatus,
-    coreStatus,
-    quantumLink,
-    soundEnabled,
-    toggleSound,
-    activeHeaderTab,
-    setActiveHeaderTab,
-    currentTime,
-    currentDate,
-    updateClock,
-    hardware,
-    micLevel,
-  } = useNexusStore();
-
+export const HeaderNav = ({ className = '' }) => {
+  const [timeStr, setTimeStr] = useState('');
+  const [dateStr, setDateStr] = useState('');
   const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
-    updateClock();
-    const timer = setInterval(updateClock, 1000);
-    return () => clearInterval(timer);
-  }, [updateClock]);
-
-  const headerTabs = [
-    { id: 'expand', icon: Maximize2 },
-    { id: 'display', icon: Tv },
-    { id: 'chat', icon: MessageSquare },
-    { id: 'grid', icon: Grid },
-    { id: 'shield', icon: Shield },
-  ];
+    const update = () => {
+      const now = new Date();
+      setTimeStr(now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }));
+      setDateStr(now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }));
+    };
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <header className="relative z-30 w-full px-3 py-1.5 flex items-center justify-between border-b border-cyan-500/20 bg-[#060b19]/90 backdrop-blur-md shrink-0 select-none">
-      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-75" />
-
-      {/* LEFT SECTION */}
-      <div className="flex items-center gap-3">
-        <div 
-          className="relative w-8 h-8 flex items-center justify-center cursor-pointer transition-transform hover:scale-105"
-          onClick={() => soundService.click()}
-        >
-          <svg viewBox="0 0 100 100" className="w-8 h-8 fill-none stroke-cyan-400 drop-shadow-[0_0_8px_rgba(0,240,255,0.7)]" strokeWidth="6">
-            <polygon points="50 5, 90 27.5, 90 72.5, 50 95, 10 72.5, 10 27.5" stroke="rgba(0,240,255,0.8)" fill="rgba(0,240,255,0.06)" />
-            <path d="M30 40 L50 25 L70 40 L50 75 Z" stroke="rgba(56,189,248,0.9)" strokeWidth="5" />
-            <circle cx="50" cy="45" r="5" fill="#00f0ff" />
-          </svg>
+    <div className={`flex items-center gap-4 select-none ${className}`}>
+      {/* Date & Time */}
+      <div className="text-right leading-tight">
+        <div className="text-xs text-slate-400 font-medium">
+          {dateStr || 'Mon, May 26, 2026'}
         </div>
-
-        <div>
-          <div className="text-sm font-mono tracking-wider text-cyan-200 font-bold leading-none glow-text-cyan">
-            {currentTime || new Date().toLocaleTimeString('en-US', { hour12: false })}
-          </div>
-          <div className="text-[9px] font-mono tracking-wider text-slate-400 uppercase mt-0.5">
-            {currentDate || new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}
-          </div>
-        </div>
-
-        <div className="h-5 w-[1px] bg-cyan-500/20 mx-0.5" />
-
-        <div className="flex items-center gap-2 px-2 py-0.5 rounded border border-emerald-500/30 bg-emerald-950/20">
-          <div className="relative flex items-center justify-center">
-            <Mic className={`w-3 h-3 ${micLevel > 10 ? 'text-cyan-400 animate-pulse' : 'text-emerald-400'}`} />
-            <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping opacity-75" />
-          </div>
-          <div className="leading-tight">
-            <div className="flex items-center gap-1 text-[10px] font-mono font-bold tracking-wider text-emerald-400 uppercase">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              SYSTEM {systemStatus}
-            </div>
-            <div className="text-[8px] text-emerald-400/70 font-mono tracking-tight hidden sm:block">
-              {systemSubStatus}
-            </div>
-          </div>
+        <div className="text-sm text-slate-100 font-bold tracking-wide mt-0.5">
+          {timeStr || '11:47 PM'}
         </div>
       </div>
 
-      {/* CENTER SECTION */}
-      <div className="flex items-center gap-4">
-        <div className="hidden sm:flex items-center gap-0.5 p-0.5 rounded-lg border border-cyan-500/20 bg-[#081226]/60">
-          {headerTabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeHeaderTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveHeaderTab(tab.id)}
-                onMouseEnter={() => soundService.hover()}
-                className={`p-1 rounded transition-all ${
-                  isActive
-                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 glow-box-cyan'
-                    : 'text-slate-400 hover:text-cyan-400 hover:bg-cyan-500/10'
-                }`}
-                title={tab.id}
-              >
-                <Icon className="w-3 h-3" />
-              </button>
-            );
-          })}
-        </div>
+      {/* Sun / Theme Button */}
+      <button
+        onClick={() => soundService.click()}
+        onMouseEnter={() => soundService.hover()}
+        className="w-9 h-9 rounded-full bg-[#0a1224]/80 border border-cyan-500/25 flex items-center justify-center text-slate-300 hover:text-cyan-300 hover:border-cyan-400/50 hover:shadow-[0_0_12px_rgba(0,240,255,0.3)] transition-all cursor-pointer"
+        title="Toggle Theme"
+      >
+        <Sun className="w-4 h-4 text-cyan-300" />
+      </button>
 
-        <div className="text-center cursor-default">
-          <h1 className="font-orbitron font-black text-lg tracking-[0.2em] text-cyan-300 glow-text-cyan flex items-center justify-center gap-2 leading-none">
-            NEXUS PRIME
-          </h1>
-          <p className="text-[8px] font-mono tracking-[0.25em] text-cyan-400/70 uppercase">
-            INTELLIGENT CONTROL SYSTEM
-          </p>
-        </div>
-      </div>
-
-      {/* RIGHT SECTION */}
-      <div className="flex items-center gap-3">
+      {/* User Profile Avatar with Caret */}
+      <div className="relative">
         <button
-          onClick={toggleSound}
+          onClick={() => {
+            soundService.click();
+            setProfileOpen(!profileOpen);
+          }}
           onMouseEnter={() => soundService.hover()}
-          className="p-1 rounded border border-cyan-500/20 bg-cyan-950/20 text-cyan-400 hover:border-cyan-400/50 hover:bg-cyan-500/10 transition-all cursor-pointer"
-          title={soundEnabled ? 'Mute Audio FX' : 'Enable Audio FX'}
+          className="flex items-center gap-1.5 cursor-pointer group"
         >
-          {soundEnabled ? <Volume2 className="w-3 h-3" /> : <VolumeX className="w-3 h-3 text-slate-500" />}
+          <div className="w-9 h-9 rounded-full bg-[#0d1f44] border-2 border-cyan-400/70 p-0.5 shadow-[0_0_12px_rgba(0,240,255,0.4)] flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105">
+            <div className="w-full h-full rounded-full bg-gradient-to-tr from-cyan-600 via-blue-700 to-indigo-600 flex items-center justify-center">
+              <User className="w-4 h-4 text-white" />
+            </div>
+          </div>
+          <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-cyan-300 transition-colors" />
         </button>
 
-        <div className="flex items-center gap-2 px-2 py-0.5 rounded border border-cyan-500/20 bg-[#081226]/50">
-          <div>
-            <div className="text-[8px] font-mono text-slate-400 tracking-wider">
-              CPU ({hardware.cores} CORES)
+        {profileOpen && (
+          <div className="absolute right-0 top-12 w-48 rounded-xl border border-cyan-500/30 bg-[#050b18]/95 backdrop-blur-2xl p-3 shadow-2xl z-50 text-xs font-mono space-y-2">
+            <div className="text-cyan-300 font-bold border-b border-cyan-500/20 pb-1.5 flex items-center justify-between">
+              <span>OPERATOR</span>
+              <span className="text-[10px] text-emerald-400 font-normal">ACTIVE</span>
             </div>
-            <div className="text-[11px] font-mono font-bold text-cyan-300 leading-none">
-              {coreStatus.cpu.toFixed(1)}%
-            </div>
-          </div>
-          <svg className="w-9 h-4 text-cyan-400 overflow-visible" viewBox="0 0 50 20">
-            <polyline
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              points="0,15 10,12 18,16 26,6 34,14 42,9 50,11"
-              className="drop-shadow-[0_0_3px_rgba(0,240,255,0.8)]"
-            />
-          </svg>
-        </div>
-
-        <div className="hidden md:flex items-center gap-2 px-2 py-0.5 rounded border border-cyan-500/20 bg-[#081226]/50">
-          <div>
-            <div className="text-[8px] font-mono text-slate-400 tracking-wider">LINK STATUS</div>
-            <div className="text-[11px] font-mono font-bold text-emerald-400 leading-none glow-text-green">
-              {quantumLink}
+            <div className="text-slate-300 text-[11px] space-y-1">
+              <div>Role: AI Architect</div>
+              <div>System: JARVIS v1.0</div>
+              <div className="text-cyan-400 text-[10px]">Access Level: 10 (Root)</div>
             </div>
           </div>
-          <Activity className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-        </div>
-
-        <div className="relative">
-          <button
-            onClick={() => {
-              soundService.click();
-              setProfileOpen(!profileOpen);
-            }}
-            className="flex items-center gap-1.5 p-1 pl-1.5 pr-2 rounded border border-cyan-500/30 bg-[#0a1630]/70 hover:border-cyan-400 transition-all cursor-pointer"
-          >
-            <div className="w-5 h-5 rounded-full border border-cyan-400 overflow-hidden bg-cyan-950 flex items-center justify-center">
-              <span className="text-[9px] font-bold text-cyan-300">NX</span>
-            </div>
-            <div className="text-left leading-none">
-              <div className="text-[9px] font-mono font-bold text-slate-200">
-                NEXUS AI
-              </div>
-              <div className="text-[7px] font-mono text-cyan-400 mt-0.5">
-                v7.3.2
-              </div>
-            </div>
-            <ChevronDown className="w-3 h-3 text-slate-400" />
-          </button>
-
-          {profileOpen && (
-            <div className="absolute right-0 top-8 w-44 rounded border border-cyan-500/30 bg-[#060e20] p-2 shadow-2xl z-50 text-xs font-mono">
-              <div className="text-cyan-300 font-bold border-b border-cyan-500/20 pb-1 mb-1">
-                OPERATOR // ROOT
-              </div>
-              <div className="text-slate-400 text-[10px] space-y-1">
-                <div>Hardware: {hardware.cores} Cores, {hardware.memoryGB} GB RAM</div>
-                <div>Downlink: {hardware.downlink}</div>
-                <div className="text-emerald-400">Signal AI Core: ONLINE</div>
-              </div>
-            </div>
-          )}
-        </div>
+        )}
       </div>
-    </header>
+    </div>
   );
 };
+
+export default HeaderNav;
+
 

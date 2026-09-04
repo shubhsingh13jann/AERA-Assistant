@@ -1,187 +1,96 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React from 'react';
 import { useNexusStore } from '../../core/nexusStore';
 import { soundService } from '../../core/soundService';
 import {
-  LayoutDashboard,
+  Home,
   Activity,
-  Grid,
-  Box,
-  Sliders,
-  ShieldAlert,
+  BookOpen,
   FileText,
+  Wrench,
   Settings,
-  Lock,
 } from 'lucide-react';
 
 export const Sidebar = () => {
-  const {
-    activeNav,
-    setActiveNav,
-    operator,
-    uptimeSeconds,
-  } = useNexusStore();
-
-  const formattedUptime = useMemo(() => {
-    const safeSecs = uptimeSeconds || 0;
-    const hrs = String(Math.floor(safeSecs / 3600)).padStart(2, '0');
-    const mins = String(Math.floor((safeSecs % 3600) / 60)).padStart(2, '0');
-    const secs = String(safeSecs % 60).padStart(2, '0');
-    return { hrs, mins, secs };
-  }, [uptimeSeconds]);
+  const { activeNav, setActiveNav } = useNexusStore();
 
   const navItems = [
-    { id: 'DASHBOARD', label: 'DASHBOARD', icon: LayoutDashboard },
-    { id: 'PERFORMANCE', label: 'PERFORMANCE', icon: Activity },
-    { id: 'DATA MATRIX', label: 'DATA MATRIX', icon: Grid },
-    { id: 'MODELS', label: 'MODELS', icon: Box },
-    { id: 'AUTOMATIONS', label: 'AUTOMATIONS', icon: Sliders },
-    { id: 'CYBER VAULT', label: 'CYBER VAULT', icon: Lock },
-    { id: 'ANOMALIES', label: 'ANOMALIES', icon: ShieldAlert, badge: 3 },
-    { id: 'LOGS', label: 'LOGS', icon: FileText },
-    { id: 'SETTINGS', label: 'SETTINGS', icon: Settings },
+    { id: 'Chat', label: 'Chat', icon: Home },
+    { id: 'Performance', label: 'Performance', icon: Activity },
+    { id: 'Knowledge', label: 'Knowledge', icon: BookOpen },
+    { id: 'Files', label: 'Files', icon: FileText },
+    { id: 'Tools', label: 'Tools', icon: Wrench },
+    { id: 'Settings', label: 'Settings', icon: Settings },
   ];
 
   return (
-    <aside className="w-52 shrink-0 h-full flex flex-col justify-between border-r border-cyan-500/20 bg-[#050b18]/90 backdrop-blur-md p-2 select-none overflow-hidden">
-      <div>
-        {/* Brand */}
-        <div className="flex items-center gap-2 px-1 mb-2">
-          <div className="w-7 h-7 rounded border border-cyan-500/40 bg-cyan-950/40 flex items-center justify-center glow-box-cyan">
-            <svg viewBox="0 0 24 24" className="w-4 h-4 text-cyan-400 stroke-current" fill="none" strokeWidth="2">
-              <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2" />
-              <circle cx="12" cy="12" r="3" fill="#00f0ff" />
+    <aside className="w-56 shrink-0 h-full flex flex-col justify-between border-r border-cyan-500/15 bg-[#030712]/90 backdrop-blur-2xl p-4 select-none z-20">
+      <div className="space-y-6">
+        {/* Brand Header */}
+        <div className="flex items-center gap-3 px-1">
+          <div className="relative w-10 h-10 flex items-center justify-center">
+            {/* Concentric Arc Reactor Ring */}
+            <svg viewBox="0 0 100 100" className="w-full h-full text-cyan-400 animate-[spin_12s_linear_infinite]">
+              <circle cx="50" cy="50" r="44" stroke="currentColor" strokeWidth="3" strokeDasharray="14 10" fill="none" opacity="0.6" />
+              <circle cx="50" cy="50" r="32" stroke="currentColor" strokeWidth="2.5" strokeDasharray="6 6" fill="none" opacity="0.8" />
             </svg>
+            <div className="absolute w-3.5 h-3.5 rounded-full bg-cyan-400 shadow-[0_0_12px_#00f0ff] animate-pulse" />
           </div>
+
           <div>
-            <div className="font-orbitron font-bold text-xs tracking-wider text-slate-100 leading-none">
-              NEXUS AI
+            <div className="font-sans font-bold text-lg tracking-wider text-white leading-none drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]">
+              JARVIS
             </div>
-            <div className="text-[8px] font-mono tracking-widest text-cyan-400/80 uppercase">
-              COMMAND CENTER
-            </div>
-          </div>
-        </div>
-
-        {/* Operator Card */}
-        <div className="hud-panel p-2 rounded mb-2 relative overflow-hidden">
-          <div className="hud-corner hud-corner-tl" />
-          <div className="hud-corner hud-corner-br" />
-
-          <div className="flex items-center gap-2">
-            <div className="relative w-8 h-8 rounded-full border border-cyan-400/60 overflow-hidden bg-[#0a1630] flex items-center justify-center shrink-0">
-              <div className="w-6 h-6 rounded-full bg-cyan-500/20 flex items-center justify-center">
-                <svg viewBox="0 0 24 24" className="w-4 h-4 text-cyan-300" fill="currentColor">
-                  <path d="M12 2a9 9 0 0 0-9 9c0 4.1 2.8 7.5 6.6 8.6v1.4h4.8v-1.4c3.8-1.1 6.6-4.5 6.6-8.6a9 9 0 0 0-9-9zm0 4a3 3 0 0 1 3 3v2h-6V9a3 3 0 0 1 3-3zm-5 7h10c-.3 2.8-2.6 5-5 5s-4.7-2.2-5-5z" />
-                </svg>
-              </div>
-              <span className="absolute bottom-0 right-0 w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono font-bold text-cyan-300 truncate">
-                  {operator?.name || 'COMMANDER'}
-                </span>
-                <span className="text-[8px] font-mono text-cyan-400 bg-cyan-950/60 px-1 py-0.2 rounded border border-cyan-500/30">
-                  Lv {operator?.level || 4}
-                </span>
-              </div>
-              <div className="w-full h-1 bg-slate-800 rounded-full overflow-hidden border border-cyan-500/20 mt-1">
-                <div
-                  className="h-full bg-cyan-400 shadow-[0_0_6px_#00f0ff]"
-                  style={{ width: `${((operator?.xp || 6200) / (operator?.xpMax || 10000)) * 100}%` }}
-                />
-              </div>
+            <div className="text-[9px] font-mono tracking-widest text-cyan-400/80 uppercase mt-1">
+              YOUR AI ASSISTANT
             </div>
           </div>
         </div>
 
         {/* Navigation List */}
-        <nav className="space-y-0.5">
+        <nav className="space-y-1.5 pt-2">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = activeNav === item.label;
+            const isActive =
+              (item.id === 'Chat' && (activeNav === 'Chat' || activeNav === 'DASHBOARD' || !activeNav)) ||
+              (item.id === 'Performance' && (activeNav === 'Performance' || activeNav === 'PERFORMANCE')) ||
+              activeNav === item.id;
+
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveNav(item.label)}
+                onClick={() => {
+                  soundService.click();
+                  setActiveNav(item.id);
+                }}
                 onMouseEnter={() => soundService.hover()}
-                className={`w-full flex items-center justify-between px-2.5 py-1 rounded transition-all text-[11px] font-mono font-semibold tracking-wider relative group ${
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all text-sm font-medium tracking-wide ${
                   isActive
-                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 glow-box-cyan'
-                    : 'text-slate-400 hover:text-cyan-300 hover:bg-cyan-500/5 border border-transparent'
+                    ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-[0_0_20px_rgba(37,99,235,0.5)] border border-blue-400/40'
+                    : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/40 border border-transparent'
                 }`}
               >
-                {isActive && (
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-3 bg-cyan-400 shadow-[0_0_6px_#00f0ff]" />
-                )}
-                <div className="flex items-center gap-2">
-                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-cyan-400' : 'text-slate-400 group-hover:text-cyan-400'}`} />
-                  <span>{item.label}</span>
-                </div>
-                {item.badge && (
-                  <span className="text-[8px] font-mono font-bold px-1 rounded-full bg-purple-600/80 text-purple-100 border border-purple-400/50">
-                    {item.badge}
-                  </span>
-                )}
+                <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                <span>{item.label}</span>
               </button>
             );
           })}
         </nav>
       </div>
 
-      {/* Bottom Section */}
-      <div className="space-y-1.5 pt-1.5 border-t border-cyan-500/20">
-        <div className="hud-panel p-1.5 rounded relative">
-          <div className="flex items-center justify-between text-[8px] font-mono text-slate-400">
-            <span>SESSION UPTIME</span>
-            <span className="text-cyan-400 text-[7px]">SYS // OK</span>
-          </div>
-
-          <div className="flex items-baseline justify-between text-cyan-300 font-mono font-bold text-sm leading-none mt-0.5 glow-text-cyan">
-            <span>{formattedUptime.hrs}</span>
-            <span className="text-cyan-500/50">:</span>
-            <span>{formattedUptime.mins}</span>
-            <span className="text-cyan-500/50">:</span>
-            <span>{formattedUptime.secs}</span>
-          </div>
-
-          <div className="w-full h-2.5 overflow-hidden mt-0.5">
-            <svg className="w-full h-full text-cyan-400 opacity-80" viewBox="0 0 150 16" preserveAspectRatio="none">
-              <path
-                d="M 0 8 Q 25 1, 50 8 T 100 8 T 150 8"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.2"
-                strokeDasharray="4 2"
-                className="animate-pulse"
-              />
-            </svg>
-          </div>
+      {/* Bottom Status Card */}
+      <div className="pt-4 border-t border-cyan-500/15">
+        <div className="flex items-center gap-2 px-2">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 shadow-[0_0_8px_#10b981]" />
+          </span>
+          <span className="text-xs font-semibold text-emerald-400 tracking-wide">Online</span>
         </div>
-
-        {/* Power Core */}
-        <div className="hud-panel p-1.5 rounded flex items-center justify-between relative">
-          <div className="relative w-8 h-8 flex items-center justify-center shrink-0">
-            <svg className="absolute inset-0 w-full h-full text-cyan-500/40 animate-[spin_10s_linear_infinite]" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="44" stroke="currentColor" strokeWidth="3" strokeDasharray="6 8" fill="none" />
-            </svg>
-            <svg className="absolute inset-0.5 w-7 h-7 text-cyan-400 animate-[spin_6s_linear_infinite_reverse]" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="4" strokeDasharray="14 10" fill="none" />
-            </svg>
-            <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#00f0ff] animate-pulse" />
-          </div>
-
-          <div className="flex-1 pl-2 leading-tight">
-            <div className="text-[7px] font-mono text-slate-400 uppercase">POWER CORE</div>
-            <div className="text-[10px] font-mono font-bold text-cyan-300 glow-text-cyan">STABLE</div>
-          </div>
-
-          <div className="text-[10px] font-mono font-bold text-cyan-400">
-            100%
-          </div>
+        <div className="text-[10px] font-mono text-slate-500 px-2 mt-1">
+          JARVIS v1.0
         </div>
       </div>
     </aside>
   );
 };
+

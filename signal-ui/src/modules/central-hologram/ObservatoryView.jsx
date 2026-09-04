@@ -22,16 +22,62 @@ export const ObservatoryView = () => {
     }, 4000);
   };
 
+  const [isInactive, setIsInactive] = useState(false);
+  const lastActivityTimeRef = useRef(Date.now());
+  const prevMsgCountRef = useRef(messages ? messages.length : 0);
+
+  // Record user or conversation activity
+  const recordActivity = () => {
+    lastActivityTimeRef.current = Date.now();
+    setIsInactive(false);
+  };
+
   // 1. Direct subscription to orbState === 'error'
   useEffect(() => {
     if (orbState === 'error') {
       triggerRedErrorState();
+      recordActivity();
     }
   }, [orbState]);
 
-  // 2. Persistent detection of error / rejection / failure / not-found / couldn't in last message
+  // 2. Steady 1-second interval check for 10s inactivity (immune to background hardware ticks)
   useEffect(() => {
-    if (!messages || messages.length === 0) return;
+    recordActivity();
+
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - lastActivityTimeRef.current;
+      if (elapsed >= 10000) { // 10 seconds of no question or response -> lights & movement OFF
+        setIsInactive(true);
+        const currentOrb = useNexusStore.getState().orbState;
+        if (currentOrb !== 'error' && currentOrb !== 'idle') {
+          useNexusStore.getState().setOrbState('idle');
+        }
+      } else {
+        setIsInactive(false);
+      }
+    }, 1000);
+
+    const unsubActivity = eventBus.subscribe(EVENTS.USER_ACTIVITY, recordActivity);
+    const unsubCmd = eventBus.subscribe(EVENTS.COMMAND_DISPATCHED, recordActivity);
+    const unsubMsg = eventBus.subscribe(EVENTS.CONVERSATION_MESSAGE, recordActivity);
+
+    return () => {
+      clearInterval(interval);
+      unsubActivity();
+      unsubCmd();
+      unsubMsg();
+    };
+  }, []);
+
+  // 3. Record activity ONLY when a new message actually arrives
+  useEffect(() => {
+    if (!messages) return;
+    if (messages.length !== prevMsgCountRef.current) {
+      prevMsgCountRef.current = messages.length;
+      recordActivity();
+    }
+
+    if (messages.length === 0) return;
     const lastMsg = messages[messages.length - 1];
 
     if (lastMsg.role === 'assistant' || lastMsg.role === 'jarvis') {
@@ -57,15 +103,23 @@ export const ObservatoryView = () => {
     };
   }, []);
 
-  // Compute active reactor state: 'error' (red) | 'listening' | 'thinking' | 'responding' | 'idle' | 'dormant'
+  // Compute active reactor state: 'error' (red) | 'listening' | 'thinking' | 'responding' | 'idle' | 'dormant' (lights & movement OFF)
+  // CRITICAL: 10s inactivity takes precedence so reactor turns OFF 10s after last question/response!
   let currentState = overrideState;
   if (!currentState) {
-    if (orbState === 'error') currentState = 'error';
-    else if (orbState === 'listening') currentState = 'listening';
-    else if (orbState === 'processing') currentState = 'thinking';
-    else if (orbState === 'speaking') currentState = 'responding';
-    else if (messages && messages.length > 2) currentState = 'idle';
-    else currentState = 'dormant';
+    if (isInactive) {
+      currentState = 'dormant';
+    } else if (orbState === 'error') {
+      currentState = 'error';
+    } else if (orbState === 'listening') {
+      currentState = 'listening';
+    } else if (orbState === 'processing') {
+      currentState = 'thinking';
+    } else if (orbState === 'speaking') {
+      currentState = 'responding';
+    } else {
+      currentState = 'idle';
+    }
   }
 
   const handleAction = (label, query) => {

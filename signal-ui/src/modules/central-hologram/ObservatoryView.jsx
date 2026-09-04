@@ -86,55 +86,37 @@ export const ObservatoryView = () => {
 
   return (
     <div className="relative flex-1 h-full min-h-0 overflow-hidden flex flex-col justify-between select-none bg-[#02050f]">
-      {/* 1. CINEMATIC ANIMATED DEEP SPACE & CYBERNETIC COCKPIT BACKDROP */}
+      {/* 1. CINEMATIC HIGH-RESOLUTION LABORATORY OBSERVATORY CHAMBER BACKDROP */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {/* Deep Cosmic Nebulae Glows */}
+        {/* Photorealistic Sci-Fi Chamber Background Image */}
+        <img
+          src="/observatory_bg.jpg"
+          alt="Sci-Fi Observatory Chamber"
+          className="w-full h-full object-cover object-center transition-all duration-700 opacity-90"
+        />
+
+        {/* Dynamic Threat Red Warning Flash Overlay */}
         <div
-          className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] rounded-full blur-[140px] opacity-40 transition-colors duration-700"
+          className={`absolute inset-0 transition-opacity duration-700 pointer-events-none ${
+            currentState === 'error' ? 'opacity-100' : 'opacity-0'
+          }`}
           style={{
-            background: currentState === 'error'
-              ? 'radial-gradient(circle, rgba(255,0,85,0.45) 0%, rgba(180,0,50,0.2) 60%, transparent 100%)'
-              : 'radial-gradient(circle, rgba(0,240,255,0.25) 0%, rgba(59,130,246,0.12) 60%, transparent 100%)',
+            background: 'radial-gradient(circle at center, rgba(255,0,50,0.4) 0%, rgba(160,0,40,0.65) 60%, rgba(20,0,5,0.9) 100%)',
+            mixBlendMode: 'color-dodge',
           }}
         />
 
-        {/* Curved Planetary Horizon Line */}
+        {/* Soft Core Radial Ambient Light directly behind the Reactor */}
         <div
-          className="absolute -bottom-[36%] left-[-15%] right-[-15%] h-[75%] rounded-[100%] border-t transition-colors duration-700 shadow-[0_-20px_80px_rgba(0,180,255,0.15)]"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[650px] rounded-full blur-[110px] pointer-events-none transition-all duration-700"
           style={{
-            borderColor: currentState === 'error' ? 'rgba(255, 0, 85, 0.5)' : 'rgba(0, 240, 255, 0.25)',
             background: currentState === 'error'
-              ? 'radial-gradient(ellipse at center bottom, #3b0212 0%, #1a0108 45%, #080003 75%, transparent 100%)'
-              : 'radial-gradient(ellipse at center bottom, #091a3c 0%, #040d22 45%, #020614 75%, transparent 100%)',
+              ? 'radial-gradient(circle, rgba(255,0,85,0.55) 0%, rgba(180,0,50,0.2) 50%, transparent 80%)'
+              : currentState === 'dormant'
+              ? 'radial-gradient(circle, rgba(0,240,255,0.08) 0%, transparent 60%)'
+              : 'radial-gradient(circle, rgba(0,240,255,0.38) 0%, rgba(59,130,246,0.18) 50%, transparent 80%)',
           }}
         />
-
-        {/* Perspective Cybernetic Floor Grid with Rolling Scanline */}
-        <div className="absolute bottom-0 left-0 right-0 h-48 opacity-30 perspective-grid overflow-hidden">
-          <div
-            className="w-full h-full border-b transition-colors duration-700"
-            style={{
-              borderColor: currentState === 'error' ? 'rgba(255, 0, 85, 0.4)' : 'rgba(0, 240, 255, 0.2)',
-              backgroundImage: currentState === 'error'
-                ? 'linear-gradient(to right, rgba(255,0,85,0.25) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,0,85,0.25) 1px, transparent 1px)'
-                : 'linear-gradient(to right, rgba(0,240,255,0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,240,255,0.15) 1px, transparent 1px)',
-              backgroundSize: '40px 30px',
-              transform: 'rotateX(65deg) translateY(-20px)',
-              transformOrigin: 'bottom center',
-            }}
-          />
-          {/* Laser Scanline Sweep */}
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-400/10 to-transparent animate-[scanline_3s_linear_infinite]" />
-        </div>
-
-        {/* Distant Starlight Points */}
-        <div className="absolute top-12 left-16 w-1 h-1 bg-white/70 rounded-full blur-[0.5px]" />
-        <div className="absolute top-24 left-32 w-1.5 h-1.5 bg-cyan-200/80 rounded-full blur-[0.5px]" />
-        <div className="absolute top-10 right-28 w-1 h-1 bg-white/60 rounded-full" />
-        <div className="absolute top-36 right-48 w-1.5 h-1.5 bg-blue-300/80 rounded-full blur-[0.5px]" />
-
-        {/* Observatory Window Arch Vignette */}
-        <div className="absolute inset-0 border border-cyan-900/15 rounded-3xl m-3 pointer-events-none shadow-[inset_0_0_80px_rgba(2,6,23,0.85)]" />
       </div>
 
       {/* Top Section: Ambient Quote */}

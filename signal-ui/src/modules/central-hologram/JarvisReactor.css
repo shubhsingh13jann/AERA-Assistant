@@ -45,9 +45,33 @@
   transform-origin: 400px 380px;
 }
 
+/* Base Projection Platform Ground Ring Dash Animations (Stays 100% Flat on Floor) */
 .spin-base-ring {
-  animation: reactorSpinCw 30s linear infinite;
-  transform-origin: 400px 650px;
+  stroke-dasharray: 14 18;
+  animation: baseRingDashSpin 16s linear infinite;
+}
+
+.spin-base-ring-counter {
+  stroke-dasharray: 8 12;
+  animation: baseRingDashSpinCounter 12s linear infinite;
+}
+
+@keyframes baseRingDashSpin {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -320;
+  }
+}
+
+@keyframes baseRingDashSpinCounter {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: 240;
+  }
 }
 
 @keyframes reactorSpinCw {

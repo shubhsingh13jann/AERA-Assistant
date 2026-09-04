@@ -199,10 +199,27 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
           <ellipse cx="400" cy="646" rx="130" ry="19" stroke={mainStroke} strokeWidth="2.5" fill="none" />
           <ellipse cx="400" cy="642" rx="80" ry="12" stroke={isErrorState ? '#ffffff' : 'rgba(180, 250, 255, 0.95)'} strokeWidth="2" fill="none" />
 
-          {/* Rotating Outer Base Ring Marks */}
-          <g className="spin-base-ring">
-            <ellipse cx="400" cy="650" rx="180" ry="27" stroke={dimStroke} strokeWidth="1.5" strokeDasharray="12 18" fill="none" />
-          </g>
+          {/* Seamless Dotted Ground Rings Rotating Flat on the Floor (strokeDashoffset animation) */}
+          <ellipse
+            cx="400"
+            cy="650"
+            rx="185"
+            ry="28"
+            stroke={dimStroke}
+            strokeWidth="1.5"
+            fill="none"
+            className="spin-base-ring"
+          />
+          <ellipse
+            cx="400"
+            cy="646"
+            rx="145"
+            ry="21"
+            stroke={secondaryStroke}
+            strokeWidth="1.2"
+            fill="none"
+            className="spin-base-ring-counter"
+          />
         </g>
 
         {/* 2. 3D ORBITAL TILTED ELLIPTICAL RINGS */}

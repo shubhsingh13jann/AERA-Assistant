@@ -1,0 +1,189 @@
+/* Futuristic Digital Holographic JARVIS Energy Core Styles & GPU Keyframe Animations */
+
+.jarvis-reactor-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* GPU hardware-accelerated layer optimizations */
+.jarvis-reactor-svg {
+  width: 100%;
+  height: 100%;
+  max-width: 580px;
+  max-height: 580px;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+/* 1. CONTINUOUS ROTATION KEYFRAMES */
+
+.spin-clockwise-slow {
+  animation: reactorSpinCw 24s linear infinite;
+  transform-origin: 400px 380px;
+}
+
+.spin-clockwise-fast {
+  animation: reactorSpinCw 12s linear infinite;
+  transform-origin: 400px 380px;
+}
+
+.spin-counter-slow {
+  animation: reactorSpinCcw 20s linear infinite;
+  transform-origin: 400px 380px;
+}
+
+.spin-counter-fast {
+  animation: reactorSpinCcw 10s linear infinite;
+  transform-origin: 400px 380px;
+}
+
+.spin-base-ring {
+  animation: reactorSpinCw 30s linear infinite;
+  transform-origin: 400px 650px;
+}
+
+@keyframes reactorSpinCw {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes reactorSpinCcw {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+/* 2. PULSING & CORE GLOW KEYFRAMES */
+
+.pulse-core-soft {
+  animation: corePulseSoft 3s ease-in-out infinite alternate;
+  transform-origin: 400px 380px;
+}
+
+.pulse-core-intense {
+  animation: corePulseIntense 1.2s ease-in-out infinite alternate;
+  transform-origin: 400px 380px;
+}
+
+@keyframes corePulseSoft {
+  0% {
+    transform: scale(0.96);
+    opacity: 0.88;
+    filter: drop-shadow(0 0 15px rgba(0, 240, 255, 0.8));
+  }
+  100% {
+    transform: scale(1.04);
+    opacity: 1;
+    filter: drop-shadow(0 0 35px rgba(0, 240, 255, 1)) drop-shadow(0 0 50px rgba(139, 92, 246, 0.6));
+  }
+}
+
+@keyframes corePulseIntense {
+  0% {
+    transform: scale(0.94);
+    opacity: 0.85;
+    filter: drop-shadow(0 0 25px rgba(0, 240, 255, 0.9));
+  }
+  100% {
+    transform: scale(1.12);
+    opacity: 1;
+    filter: drop-shadow(0 0 45px rgba(0, 240, 255, 1)) drop-shadow(0 0 65px rgba(255, 255, 255, 0.9));
+  }
+}
+
+/* 3. RADAR SCAN SWEEP */
+
+.radar-scan-sweep {
+  animation: radarScan 4s linear infinite;
+  transform-origin: 400px 380px;
+}
+
+@keyframes radarScan {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 4. RESPONDING EXPANDING WAVE */
+
+.wave-expand-pulse {
+  animation: waveExpand 1.5s ease-out infinite;
+  transform-origin: 400px 380px;
+}
+
+@keyframes waveExpand {
+  0% {
+    r: 20px;
+    opacity: 1;
+    stroke-width: 4px;
+  }
+  100% {
+    r: 220px;
+    opacity: 0;
+    stroke-width: 1px;
+  }
+}
+
+/* 5. STATE MODIFIERS (IDLE, LISTENING, THINKING, RESPONDING) */
+
+/* IDLE STATE */
+.jarvis-reactor-container[data-state="idle"] .spin-clockwise-slow {
+  animation-duration: 24s;
+}
+.jarvis-reactor-container[data-state="idle"] .spin-counter-slow {
+  animation-duration: 20s;
+}
+
+/* LISTENING STATE */
+.jarvis-reactor-container[data-state="listening"] .spin-clockwise-slow {
+  animation-duration: 14s;
+}
+.jarvis-reactor-container[data-state="listening"] .spin-counter-slow {
+  animation-duration: 12s;
+}
+.jarvis-reactor-container[data-state="listening"] .reactor-core-group {
+  filter: drop-shadow(0 0 40px rgba(0, 240, 255, 1)) drop-shadow(0 0 60px rgba(0, 150, 255, 0.8));
+}
+
+/* THINKING STATE */
+.jarvis-reactor-container[data-state="thinking"] .spin-clockwise-slow {
+  animation-duration: 7s;
+}
+.jarvis-reactor-container[data-state="thinking"] .spin-counter-slow {
+  animation-duration: 6s;
+}
+.jarvis-reactor-container[data-state="thinking"] .radar-scan-sweep {
+  animation-duration: 1.2s;
+}
+.jarvis-reactor-container[data-state="thinking"] .reactor-core-group {
+  animation-duration: 0.8s;
+  filter: drop-shadow(0 0 45px rgba(0, 240, 255, 1)) drop-shadow(0 0 70px rgba(139, 92, 246, 0.9));
+}
+
+/* RESPONDING STATE */
+.jarvis-reactor-container[data-state="responding"] .spin-clockwise-slow {
+  animation-duration: 5s;
+}
+.jarvis-reactor-container[data-state="responding"] .spin-counter-slow {
+  animation-duration: 4s;
+}
+.jarvis-reactor-container[data-state="responding"] .reactor-core-group {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 55px rgba(255, 255, 255, 1)) drop-shadow(0 0 80px rgba(0, 240, 255, 1));
+}

@@ -100,14 +100,48 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
 
   const currentState = state || 'idle';
 
-  // Dynamic Color Constants for SVG elements
-  const mainStroke = isErrorState ? 'rgba(255, 30, 80, 0.95)' : 'rgba(0, 240, 255, 0.95)';
-  const secondaryStroke = isErrorState ? 'rgba(255, 80, 0, 0.75)' : 'rgba(0, 200, 255, 0.75)';
-  const dimStroke = isErrorState ? 'rgba(255, 0, 85, 0.45)' : 'rgba(0, 240, 255, 0.45)';
-  const coreFill = isErrorState ? 'url(#redFusionGrad)' : 'url(#centralFusionGrad)';
-  const beamFill = isErrorState ? 'url(#redBeamGrad)' : 'url(#upwardBeamGrad)';
-  const blockFill = isErrorState ? 'rgba(52, 4, 16, 0.95)' : 'rgba(2, 24, 52, 0.9)';
-  const blockStroke = isErrorState ? '#ff0055' : '#00f0ff';
+  // Dynamic Color Constants for SVG elements (Lit vs Unlit Hardware OFF mode)
+  const mainStroke = isErrorState
+    ? 'rgba(255, 30, 80, 0.95)'
+    : isDormantState
+    ? 'rgba(56, 189, 248, 0.85)' // Crisp unlit cyan stroke
+    : 'rgba(0, 240, 255, 0.95)';
+
+  const secondaryStroke = isErrorState
+    ? 'rgba(255, 80, 0, 0.75)'
+    : isDormantState
+    ? 'rgba(148, 163, 184, 0.75)' // Crisp unlit slate stroke
+    : 'rgba(0, 200, 255, 0.75)';
+
+  const dimStroke = isErrorState
+    ? 'rgba(255, 0, 85, 0.45)'
+    : isDormantState
+    ? 'rgba(71, 85, 105, 0.7)' // Clear unlit dark slate stroke
+    : 'rgba(0, 240, 255, 0.45)';
+
+  const coreFill = isErrorState
+    ? 'url(#redFusionGrad)'
+    : isDormantState
+    ? 'rgba(15, 23, 42, 0.95)' // UNLIT SOLID METALLIC CORE (LIGHT OFF!)
+    : 'url(#centralFusionGrad)';
+
+  const beamFill = isErrorState
+    ? 'url(#redBeamGrad)'
+    : isDormantState
+    ? 'transparent' // ZERO UPWARD LIGHT BEAM WHEN OFF!
+    : 'url(#upwardBeamGrad)';
+
+  const blockFill = isErrorState
+    ? 'rgba(52, 4, 16, 0.95)'
+    : isDormantState
+    ? 'rgba(15, 23, 42, 0.95)' // Unlit dark metallic block
+    : 'rgba(2, 24, 52, 0.9)';
+
+  const blockStroke = isErrorState
+    ? '#ff0055'
+    : isDormantState
+    ? '#38bdf8' // Sharp unlit cyan stroke
+    : '#00f0ff';
 
   return (
     <div
@@ -450,7 +484,7 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
             cx="400"
             cy="380"
             r="8"
-            fill={isErrorState ? '#ffe5ec' : '#e0f8ff'}
+            fill={isErrorState ? '#ffe5ec' : isDormantState ? '#475569' : '#e0f8ff'}
           />
         </g>
       </svg>

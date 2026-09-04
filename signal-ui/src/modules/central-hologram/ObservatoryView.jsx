@@ -115,7 +115,7 @@ export const ObservatoryView = () => {
             background: currentState === 'error'
               ? 'radial-gradient(circle, rgba(255,0,85,0.55) 0%, rgba(180,0,50,0.2) 50%, transparent 80%)'
               : currentState === 'dormant'
-              ? 'radial-gradient(circle, rgba(0,240,255,0.08) 0%, transparent 60%)'
+              ? 'transparent'
               : 'radial-gradient(circle, rgba(0,240,255,0.38) 0%, rgba(59,130,246,0.18) 50%, transparent 80%)',
           }}
         />

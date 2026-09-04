@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNexusStore } from '../../core/nexusStore';
 import { soundService } from '../../core/soundService';
 import { JarvisReactor } from './JarvisReactor';
@@ -7,38 +7,56 @@ import { Database, Lightbulb, BarChart3, Box } from 'lucide-react';
 export const ObservatoryView = () => {
   const { orbState, messages, addConversationMessage } = useNexusStore();
   const [overrideState, setOverrideState] = useState(null);
+  const errorTimerRef = useRef(null);
 
-  // Detect error / rejection / failure / not-found / couldn't in conversation messages or orbState
+  // Helper to trigger red warning error state safely for 4 seconds
+  const triggerRedErrorState = () => {
+    soundService.alert();
+    setOverrideState('error');
+    if (errorTimerRef.current) {
+      clearTimeout(errorTimerRef.current);
+    }
+    errorTimerRef.current = setTimeout(() => {
+      setOverrideState(null);
+    }, 4000);
+  };
+
+  // 1. Direct subscription to orbState === 'error'
   useEffect(() => {
     if (orbState === 'error') {
-      soundService.alert();
-      setOverrideState('error');
-      const timer = setTimeout(() => setOverrideState(null), 3500);
-      return () => clearTimeout(timer);
+      triggerRedErrorState();
     }
+  }, [orbState]);
 
+  // 2. Persistent detection of error / rejection / failure / not-found / couldn't in last message
+  useEffect(() => {
     if (!messages || messages.length === 0) return;
     const lastMsg = messages[messages.length - 1];
+
     if (lastMsg.role === 'assistant' || lastMsg.role === 'jarvis') {
       const lower = (lastMsg.text || '').toLowerCase();
       const errorKeywords = [
         'error', 'reject', 'unable', 'failed', 'cannot', "couldn't", "can't",
         'could not', 'not find', 'not found', "didn't find", 'no match',
-        'invalid', 'unknown', 'sorry', 'unrecognized', 'problem', 'issue'
+        'invalid', 'unknown', 'sorry', 'unrecognized', 'problem', 'issue', 'don\'t'
       ];
       const isError = errorKeywords.some((kw) => lower.includes(kw));
       if (isError) {
-        soundService.alert();
-        setOverrideState('error');
-        const timer = setTimeout(() => {
-          setOverrideState(null);
-        }, 3500);
-        return () => clearTimeout(timer);
+        triggerRedErrorState();
       }
     }
-  }, [messages, orbState]);
+  }, [messages]);
 
-  // Compute active reactor state: 'dormant' | 'idle' | 'listening' | 'thinking' | 'responding' | 'error'
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (errorTimerRef.current) {
+        clearTimeout(errorTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Compute active reactor state: 'error' (red) | 'listening' | 'thinking' | 'responding' | 'idle' | 'dormant'
   let currentState = overrideState;
   if (!currentState) {
     if (orbState === 'error') currentState = 'error';
@@ -46,7 +64,7 @@ export const ObservatoryView = () => {
     else if (orbState === 'processing') currentState = 'thinking';
     else if (orbState === 'speaking') currentState = 'responding';
     else if (messages && messages.length > 2) currentState = 'idle';
-    else currentState = 'dormant'; // Default dim dormant mode when quiet
+    else currentState = 'dormant';
   }
 
   const handleAction = (label, query) => {
@@ -75,7 +93,7 @@ export const ObservatoryView = () => {
           className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] rounded-full blur-[140px] opacity-40 transition-colors duration-700"
           style={{
             background: currentState === 'error'
-              ? 'radial-gradient(circle, rgba(255,0,85,0.35) 0%, rgba(180,0,50,0.15) 60%, transparent 100%)'
+              ? 'radial-gradient(circle, rgba(255,0,85,0.45) 0%, rgba(180,0,50,0.2) 60%, transparent 100%)'
               : 'radial-gradient(circle, rgba(0,240,255,0.25) 0%, rgba(59,130,246,0.12) 60%, transparent 100%)',
           }}
         />
@@ -84,9 +102,9 @@ export const ObservatoryView = () => {
         <div
           className="absolute -bottom-[36%] left-[-15%] right-[-15%] h-[75%] rounded-[100%] border-t transition-colors duration-700 shadow-[0_-20px_80px_rgba(0,180,255,0.15)]"
           style={{
-            borderColor: currentState === 'error' ? 'rgba(255, 0, 85, 0.35)' : 'rgba(0, 240, 255, 0.25)',
+            borderColor: currentState === 'error' ? 'rgba(255, 0, 85, 0.5)' : 'rgba(0, 240, 255, 0.25)',
             background: currentState === 'error'
-              ? 'radial-gradient(ellipse at center bottom, #2b040e 0%, #120207 45%, #050103 75%, transparent 100%)'
+              ? 'radial-gradient(ellipse at center bottom, #3b0212 0%, #1a0108 45%, #080003 75%, transparent 100%)'
               : 'radial-gradient(ellipse at center bottom, #091a3c 0%, #040d22 45%, #020614 75%, transparent 100%)',
           }}
         />
@@ -96,9 +114,9 @@ export const ObservatoryView = () => {
           <div
             className="w-full h-full border-b transition-colors duration-700"
             style={{
-              borderColor: currentState === 'error' ? 'rgba(255, 0, 85, 0.3)' : 'rgba(0, 240, 255, 0.2)',
+              borderColor: currentState === 'error' ? 'rgba(255, 0, 85, 0.4)' : 'rgba(0, 240, 255, 0.2)',
               backgroundImage: currentState === 'error'
-                ? 'linear-gradient(to right, rgba(255,0,85,0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,0,85,0.15) 1px, transparent 1px)'
+                ? 'linear-gradient(to right, rgba(255,0,85,0.25) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,0,85,0.25) 1px, transparent 1px)'
                 : 'linear-gradient(to right, rgba(0,240,255,0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,240,255,0.15) 1px, transparent 1px)',
               backgroundSize: '40px 30px',
               transform: 'rotateX(65deg) translateY(-20px)',
@@ -133,7 +151,7 @@ export const ObservatoryView = () => {
         {/* Left Floating Glass Pill: Status */}
         <div className={`absolute left-8 top-1/2 -translate-y-1/2 z-20 hidden md:flex items-center gap-3 px-4 py-2.5 rounded-2xl backdrop-blur-md border shadow-2xl transition-all ${
           currentState === 'error'
-            ? 'bg-rose-950/70 border-rose-500/50 shadow-rose-950/50'
+            ? 'bg-rose-950/80 border-rose-500/70 text-rose-200 shadow-[0_0_25px_rgba(244,63,94,0.4)]'
             : 'bg-slate-900/60 border-cyan-500/25 shadow-[0_4px_20px_rgba(0,0,0,0.5)]'
         }`}>
           <div className={`flex items-center gap-1 ${currentState === 'error' ? 'text-rose-400' : 'text-cyan-400'}`}>
@@ -141,7 +159,7 @@ export const ObservatoryView = () => {
             <span className={`w-1 h-5 rounded-full animate-pulse [animation-delay:150ms] ${currentState === 'error' ? 'bg-rose-400' : 'bg-cyan-400'}`} />
             <span className={`w-1 h-2.5 rounded-full animate-pulse [animation-delay:300ms] ${currentState === 'error' ? 'bg-rose-400' : 'bg-cyan-400'}`} />
           </div>
-          <span className={`text-xs font-medium tracking-wide ${currentState === 'error' ? 'text-rose-200' : 'text-slate-200'}`}>
+          <span className={`text-xs font-medium tracking-wide ${currentState === 'error' ? 'text-rose-200 font-bold' : 'text-slate-200'}`}>
             {currentState === 'error' ? 'Command Failed / Not Found' : currentState === 'dormant' ? 'Standby Mode' : 'Listening...'}
           </span>
         </div>
@@ -152,7 +170,7 @@ export const ObservatoryView = () => {
         {/* Right Floating Glass Pill: State Indicator */}
         <div className={`absolute right-8 top-1/2 -translate-y-1/2 z-20 hidden md:flex items-center gap-3 px-4 py-2.5 rounded-2xl backdrop-blur-md border shadow-2xl transition-all ${
           currentState === 'error'
-            ? 'bg-rose-950/70 border-rose-500/50 text-rose-300'
+            ? 'bg-rose-950/80 border-rose-500/70 text-rose-200 shadow-[0_0_25px_rgba(244,63,94,0.4)]'
             : 'bg-slate-900/60 border-blue-500/25 text-slate-200 shadow-[0_4px_20px_rgba(0,0,0,0.5)]'
         }`}>
           <span className="text-xs font-medium tracking-wide">

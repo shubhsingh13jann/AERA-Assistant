@@ -40,13 +40,15 @@ export const ObservatoryView = () => {
     }
   }, [orbState]);
 
+  // 2. Persistent detection of error / rejection / failure / not-found / couldn't in last message
   // 2. Steady 1-second interval check for 10s inactivity (immune to background hardware ticks)
   useEffect(() => {
+    if (!messages || messages.length === 0) return;
     recordActivity();
 
     const interval = setInterval(() => {
       const elapsed = Date.now() - lastActivityTimeRef.current;
-      if (elapsed >= 10000) { // 10 seconds of no question or response -> lights & movement OFF
+      if (elapsed >= 60000) { // 1 minute (60 seconds) of no question or response -> lights & movement OFF
         setIsInactive(true);
         const currentOrb = useNexusStore.getState().orbState;
         if (currentOrb !== 'error' && currentOrb !== 'idle') {
@@ -103,10 +105,17 @@ export const ObservatoryView = () => {
     };
   }, []);
 
+  // Compute active reactor state: 'error' (red) | 'listening' | 'thinking' | 'responding' | 'idle' | 'dormant'
   // Compute active reactor state: 'error' (red) | 'listening' | 'thinking' | 'responding' | 'idle' | 'dormant' (lights & movement OFF)
   // CRITICAL: 10s inactivity takes precedence so reactor turns OFF 10s after last question/response!
   let currentState = overrideState;
   if (!currentState) {
+    if (orbState === 'error') currentState = 'error';
+    else if (orbState === 'listening') currentState = 'listening';
+    else if (orbState === 'processing') currentState = 'thinking';
+    else if (orbState === 'speaking') currentState = 'responding';
+    else if (messages && messages.length > 2) currentState = 'idle';
+    else currentState = 'dormant';
     if (isInactive) {
       currentState = 'dormant';
     } else if (orbState === 'error') {
@@ -198,7 +207,7 @@ export const ObservatoryView = () => {
             <span className={`w-1 h-2.5 rounded-full animate-pulse [animation-delay:300ms] ${currentState === 'error' ? 'bg-rose-400' : 'bg-cyan-400'}`} />
           </div>
           <span className={`text-xs font-medium tracking-wide ${currentState === 'error' ? 'text-rose-200 font-bold' : 'text-slate-200'}`}>
-            {currentState === 'error' ? 'Command Failed / Not Found' : currentState === 'dormant' ? 'Reactor OFF (10s Inactive)' : 'Listening...'}
+            {currentState === 'error' ? 'Command Failed / Not Found' : currentState === 'dormant' ? 'Reactor OFF (1min Inactive)' : 'Listening...'}
           </span>
         </div>
 

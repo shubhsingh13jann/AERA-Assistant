@@ -1,9 +1,15 @@
-// Web Audio API procedural sound synthesizer for futuristic sci-fi micro-interactions
+// Isolated Audio Synthesizer Microservice using Web Audio API
+import { eventBus, EVENTS } from './eventBus';
 
-class SoundEffects {
+class SoundService {
   constructor() {
     this.ctx = null;
     this.enabled = true;
+
+    // Listen to EventBus for decoupled sound triggers
+    eventBus.subscribe(EVENTS.SOUND_EFFECT_PLAY, (type) => {
+      this.playNamedEffect(type);
+    });
   }
 
   init() {
@@ -46,7 +52,7 @@ class SoundEffects {
       osc.start();
       osc.stop(this.ctx.currentTime + duration);
     } catch {
-      // Audio autoplay catch
+      // Audio autoplay policy catch
     }
   }
 
@@ -133,10 +139,20 @@ class SoundEffects {
   hologramHum() {
     this.playBeep(180, 0.35, 'triangle', 0.03);
   }
+
+  playNamedEffect(type) {
+    switch (type) {
+      case 'hover': this.hover(); break;
+      case 'click': this.click(); break;
+      case 'scan': this.scan(); break;
+      case 'alert': this.alert(); break;
+      case 'key': this.terminalKey(); break;
+      case 'hum': this.hologramHum(); break;
+      default: this.click();
+    }
+  }
 }
 
-export const soundFx = new SoundEffects();
-
-import { soundService } from '../core/soundService';
+export const soundService = new SoundService();
 export const soundFx = soundService;
 export default soundService;

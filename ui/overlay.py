@@ -11,7 +11,7 @@ Build the frontend first: cd signal-ui && npm run build
 import os
 import webview
 
-DIST_PATH = os.path.join(os.path.dirname(__file__), "..", "signal-ui", "dist", "index.html")
+DIST_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "signal-ui", "dist", "index.html"))
 
 _window = None
 
@@ -44,9 +44,10 @@ def start_ui(assistant_main):
     _window = webview.create_window(
         "Signal // JARVIS MK-85",
         DIST_PATH,
-        width=880,
-        height=530,
-        background_color="#07090c",
+        width=1400,
+        height=850,
+        min_size=(1024, 620),
+        background_color="#030712",
         resizable=True,
     )
     _window.events.closed += _on_window_closed

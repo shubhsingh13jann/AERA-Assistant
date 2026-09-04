@@ -1,8 +1,10 @@
 import { create } from 'zustand';
-import { soundFx } from '../services/soundFx';
+import { soundService } from './soundService';
+import { hardwareService } from './hardwareService';
+import { eventBus, EVENTS } from './eventBus';
 
-// Helper to detect intent tag like the original UI
-function detectIntentTag(text = '') {
+// Detect intent tag
+export function detectIntentTag(text = '') {
   const lower = text.toLowerCase();
   if (lower.includes('youtube') || lower.includes('spotify') || lower.includes('play') || lower.includes('music')) {
     return { label: 'MEDIA', color: 'border-red-500/40 text-red-400 bg-red-950/40' };
@@ -22,35 +24,47 @@ function detectIntentTag(text = '') {
   return { label: 'PROTOCOL', color: 'border-cyan-500/40 text-cyan-400 bg-cyan-950/40' };
 }
 
-// Get initial real hardware information
-const getHardwareSpecs = () => {
-  const cores = typeof navigator !== 'undefined' && navigator.hardwareConcurrency ? navigator.hardwareConcurrency : 12;
-  const memoryGB = typeof navigator !== 'undefined' && navigator.deviceMemory ? navigator.deviceMemory : 16;
-  const connection = typeof navigator !== 'undefined' && navigator.connection ? navigator.connection : null;
-  const downlink = connection?.downlink ? `${connection.downlink} MB/s` : '1.2 GB/s';
-  const rtt = connection?.rtt ? `${connection.rtt} ms` : '14 ms';
-
-  return { cores, memoryGB, downlink, rtt };
-};
-
 export const useNexusStore = create((set, get) => {
-  const specs = getHardwareSpecs();
+  const specs = hardwareService.specs;
   const startTime = Date.now();
+
+  // Listen to EventBus hardware updates
+  eventBus.subscribe(EVENTS.TELEMETRY_UPDATED, (snapshot) => {
+    set((state) => {
+      const newCpu = Math.min(98, Math.max(12, +(state.coreStatus.cpu + snapshot.cpuFlux).toFixed(1)));
+      return {
+        coreStatus: {
+          ...state.coreStatus,
+          cpu: newCpu,
+          memory: snapshot.realMemUsage || state.coreStatus.memory,
+          network: snapshot.netFlux,
+        },
+        resourceOverview: {
+          ...state.resourceOverview,
+          cpu: Math.round(newCpu),
+          memory: snapshot.realMemUsage || state.resourceOverview.memory,
+          total: Math.round((newCpu + (snapshot.realMemUsage || 40)) / 2),
+        },
+        latency: snapshot.latency,
+        packetsRate: snapshot.packetsRate,
+      };
+    });
+  });
 
   return {
     // Real System Clock
     currentTime: '',
     currentDate: '',
 
-    // Real Hardware Telemetry
+    // Real Hardware Specs
     hardware: specs,
     systemStatus: 'ONLINE',
     systemSubStatus: 'Core Matrix Armed & Calibrated',
     micLevel: 0,
     micDevice: 'Default Audio Endpoint',
-    orbState: 'idle', // 'idle', 'listening', 'speaking'
+    orbState: 'idle',
 
-    // Core Metrics (reflecting real memory & dynamic CPU load)
+    // Core Metrics
     coreStatus: {
       cpu: 18.4,
       memory: 42.1,
@@ -89,7 +103,6 @@ export const useNexusStore = create((set, get) => {
       }
     ],
 
-    // Log Stream Mode: 'conversation' vs 'system'
     logViewMode: 'conversation', // 'conversation' | 'kernel'
 
     // AI Agents
@@ -115,8 +128,8 @@ export const useNexusStore = create((set, get) => {
     selectedAgent: null,
     selectedThreat: null,
     quickAccessOpen: false,
+    activeHeaderTab: 'display',
 
-    // Real Uptime Seconds
     uptimeSeconds: 0,
 
     // Actions
@@ -134,20 +147,15 @@ export const useNexusStore = create((set, get) => {
       });
     },
 
-    setOrbState: (state) => {
-      set({ orbState: state });
-    },
+    setOrbState: (state) => set({ orbState: state }),
 
-    setMicLevel: (level, device) => {
-      set({ micLevel: level, ...(device ? { micDevice: device } : {}) });
-    },
+    setMicLevel: (level, device) => set({ micLevel: level, ...(device ? { micDevice: device } : {}) }),
 
     setLogViewMode: (mode) => {
-      soundFx.click();
+      soundService.click();
       set({ logViewMode: mode });
     },
 
-    // Add Real Conversation Message (from Python or Command Bar)
     addConversationMessage: (role, text) => {
       const time = new Date().toLocaleTimeString('en-US', { hour12: false });
       const tag = detectIntentTag(text);
@@ -173,35 +181,46 @@ export const useNexusStore = create((set, get) => {
         ],
       }));
 
+      eventBus.publish(EVENTS.CONVERSATION_MESSAGE, newMsg);
+
       if (role === 'assistant') {
-        soundFx.click();
+        soundService.click();
       } else {
-        soundFx.scan();
+        soundService.scan();
       }
     },
 
     setActiveNav: (nav) => {
-      soundFx.click();
+      soundService.click();
       set({ activeNav: nav });
     },
 
+    setActiveHeaderTab: (tab) => {
+      soundService.click();
+      set({ activeHeaderTab: tab });
+    },
+
     toggleHoloMode: () => {
-      soundFx.hologramHum();
-      set((state) => ({ holoMode: !state.holoMode }));
+      soundService.hologramHum();
+      set((state) => {
+        const next = !state.holoMode;
+        eventBus.publish(EVENTS.HOLO_MODE_TOGGLED, next);
+        return { holoMode: next };
+      });
     },
 
     toggleSound: () => {
-      const next = soundFx.toggle();
+      const next = soundService.toggle();
       set({ soundEnabled: next });
     },
 
     setSelectedAgent: (agent) => {
-      soundFx.click();
+      soundService.click();
       set({ selectedAgent: agent });
     },
 
     toggleAgentStatus: (agentId) => {
-      soundFx.click();
+      soundService.click();
       set((state) => ({
         agents: state.agents.map((a) =>
           a.id === agentId
@@ -209,34 +228,34 @@ export const useNexusStore = create((set, get) => {
             : a
         ),
       }));
+      eventBus.publish(EVENTS.AGENT_STATUS_TOGGLED, agentId);
     },
 
     setSelectedThreat: (threat) => {
-      soundFx.alert();
+      soundService.alert();
       set({ selectedThreat: threat });
+      eventBus.publish(EVENTS.THREAT_SELECTED, threat);
     },
 
     toggleQuickAccess: () => {
-      soundFx.click();
+      soundService.click();
       set((state) => ({ quickAccessOpen: !state.quickAccessOpen }));
     },
 
-    // Command Parser & Execution
     executeCommand: (cmd) => {
       const trimmed = cmd.trim();
       if (!trimmed) return null;
 
-      // Add user message to conversation
       get().addConversationMessage('you', trimmed);
+      eventBus.publish(EVENTS.COMMAND_DISPATCHED, trimmed);
 
       const lower = trimmed.toLowerCase();
 
-      // Check quick internal commands
       if (lower === 'help') {
         setTimeout(() => {
           get().addConversationMessage(
             'assistant',
-            'Available system directives: "scan", "status", "clear", "boost", "holo", "sound", or any natural request like "open browser", "play music", "volume 50".'
+            'Available system directives: "scan", "status", "clear", "boost", "holo", "sound", or any natural request.'
           );
         }, 400);
         return 'Directives catalog retrieved.';
@@ -258,7 +277,7 @@ export const useNexusStore = create((set, get) => {
       }
 
       if (lower === 'scan') {
-        soundFx.alert();
+        soundService.alert();
         setTimeout(() => {
           get().addConversationMessage('assistant', 'Security scan complete: 0 vulnerabilities found, all system ports secured.');
         }, 600);
@@ -276,7 +295,6 @@ export const useNexusStore = create((set, get) => {
         return 'Overdrive mode engaged.';
       }
 
-      // If in pywebview or browser, attempt assistant response
       setTimeout(() => {
         get().addConversationMessage(
           'assistant',
@@ -286,40 +304,6 @@ export const useNexusStore = create((set, get) => {
 
       return `Dispatched: "${trimmed}"`;
     },
-
-    // Dynamic Hardware Telemetry Tick
-    tickHardware: () => {
-      // Sample real memory if supported by browser/Chromium
-      let realMemUsage = 42;
-      if (typeof window !== 'undefined' && window.performance && window.performance.memory) {
-        const pMem = window.performance.memory;
-        realMemUsage = Math.round((pMem.usedJSHeapSize / pMem.jsHeapSizeLimit) * 100);
-      }
-
-      set((state) => {
-        const cpuFlux = (Math.random() * 4 - 2);
-        const newCpu = Math.min(98, Math.max(12, +(state.coreStatus.cpu + cpuFlux).toFixed(1)));
-        const netFlux = +(Math.random() * 3 + 8).toFixed(1);
-
-        return {
-          coreStatus: {
-            ...state.coreStatus,
-            cpu: newCpu,
-            memory: realMemUsage || state.coreStatus.memory,
-            network: netFlux,
-          },
-          resourceOverview: {
-            ...state.resourceOverview,
-            cpu: Math.round(newCpu),
-            memory: realMemUsage || state.resourceOverview.memory,
-            total: Math.round((newCpu + (realMemUsage || 40)) / 2),
-          },
-          latency: (12 + Math.floor(Math.random() * 4)).toString(),
-          packetsRate: (netFlux / 2.2).toFixed(1),
-        };
-      });
-    },
   };
 });
 
-export * from '../core/nexusStore';

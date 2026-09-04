@@ -9,6 +9,18 @@
   }
 }
 
+.font-orbitron {
+  font-family: 'Orbitron', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
+}
+
+.font-rajdhani {
+  font-family: 'Rajdhani', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', Consolas, Monaco, 'Liberation Mono', monospace;
+}
+
 /* Futuristic Slim Scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
   width: 5px;

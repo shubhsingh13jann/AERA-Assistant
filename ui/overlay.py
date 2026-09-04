@@ -33,6 +33,50 @@ def _on_window_closed():
     _window = None
 
 
+import json
+import threading
+import time
+
+try:
+    import psutil
+except ImportError:
+    psutil = None
+
+
+def _telemetry_worker():
+    """Periodically sample real host metrics and send them to the React UI."""
+    # Warm up CPU percent measurement
+    if psutil:
+        try:
+            psutil.cpu_percent(interval=None)
+        except Exception:
+            pass
+
+    while _window is not None:
+        if psutil:
+            try:
+                cpu_pct = psutil.cpu_percent(interval=None)
+                cpu_freq = psutil.cpu_freq()
+                mem = psutil.virtual_memory()
+                disk = psutil.disk_usage('C:')
+                pids = len(psutil.pids())
+
+                payload = {
+                    "cpuPercent": cpu_pct,
+                    "cpuFreq": cpu_freq.current if cpu_freq else 1700,
+                    "memPercent": mem.percent,
+                    "memUsed": round(mem.used / (1024**3), 1),
+                    "memTotal": round(mem.total / (1024**3), 1),
+                    "diskPercent": disk.percent,
+                    "processes": pids,
+                }
+                json_str = json.dumps(payload)
+                _evaluate_javascript(f"window.updateHostTelemetry && window.updateHostTelemetry({json_str});")
+            except Exception:
+                pass
+        time.sleep(1.5)
+
+
 def start_ui(assistant_main):
     """
     assistant_main: the blocking wake-word/STT/router loop. pywebview
@@ -51,6 +95,10 @@ def start_ui(assistant_main):
         resizable=True,
     )
     _window.events.closed += _on_window_closed
+
+    # Start live hardware telemetry streaming thread
+    threading.Thread(target=_telemetry_worker, daemon=True).start()
+
     webview.start(assistant_main, _window)
 
 

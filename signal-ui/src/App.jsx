@@ -13,19 +13,20 @@ const NeuralActivity = lazy(() => import('./modules/neural-matrix'));
 const SystemLogs = lazy(() => import('./modules/conversation-stream'));
 const ResourceOverview = lazy(() => import('./modules/resources'));
 const NetworkActivity = lazy(() => import('./modules/network-traffic'));
-const AiAgents = lazy(() => import('./modules/ai-agents'));
 const RealTimeFeed = lazy(() => import('./modules/realtime-feed'));
 const EnvironmentalScan = lazy(() => import('./modules/environmental-scan'));
 const ThreatMap = lazy(() => import('./modules/threat-intelligence'));
 const QuantumLinkStatus = lazy(() => import('./modules/quantum-link'));
 const PredictiveAnalytics = lazy(() => import('./modules/predictive-analytics'));
-const AgentModal = lazy(() => import('./modules/ai-agents/AgentModal'));
+const PerformanceMonitor = lazy(() => import('./modules/performance'));
+const PerformanceWidget = lazy(() => import('./modules/performance/PerformanceWidget'));
 const ThreatModal = lazy(() => import('./modules/threat-intelligence/ThreatModal'));
 const QuickAccessModal = lazy(() => import('./modules/command-terminal/QuickAccessModal'));
 
 export default function App() {
   // Atomic selective subscription - App NEVER re-renders on telemetry ticks
   const holoMode = useNexusStore((s) => s.holoMode);
+  const activeNav = useNexusStore((s) => s.activeNav);
 
   // Background hardware telemetry tick (isolated from App render)
   useEffect(() => {
@@ -63,95 +64,102 @@ export default function App() {
         {/* Left Sidebar */}
         <Sidebar />
 
-        {/* Dashboard Grid Container - Proportional flex rows with 0 page scroll */}
-        <main className="flex-1 min-h-0 p-2 flex flex-col gap-2 overflow-hidden">
-          
-          {/* ROW 1 (Hero Row ~37% Height) */}
-          <div className="flex-[3.7] min-h-0 grid grid-cols-12 gap-2 items-stretch">
-            {/* Left: Core Status */}
-            <div className="col-span-3 h-full">
-              <Suspense fallback={<ModuleSkeleton title="// CORE STATUS" />}>
-                <CoreStatus />
-              </Suspense>
-            </div>
-
-            {/* Center: Central 3D Hologram Micro-Module */}
-            <div className="col-span-6 h-full hud-panel rounded overflow-hidden relative">
-              <div className="hud-corner hud-corner-tl" />
-              <div className="hud-corner hud-corner-tr" />
-              <div className="hud-corner hud-corner-bl" />
-              <div className="hud-corner hud-corner-br" />
-              <Suspense fallback={<ModuleSkeleton title="// CENTRAL HOLOGRAM" />}>
-                <CentralHologram />
-              </Suspense>
-            </div>
-
-            {/* Right: Human Biometric Interface Micro-Module */}
-            <div className="col-span-3 h-full">
-              <Suspense fallback={<ModuleSkeleton title="// HUMAN INTERFACE" />}>
-                <HumanInterface />
-              </Suspense>
-            </div>
-          </div>
-
-          {/* ROW 2 (Mid Telemetry Row ~33% Height) */}
-          <div className="flex-[3.3] min-h-0 grid grid-cols-12 gap-2 items-stretch">
-            {/* Left: Neural Wave + Live Conversation Stream */}
-            <div className="col-span-3 h-full flex flex-col gap-2 overflow-hidden">
-              <div className="shrink-0">
-                <Suspense fallback={<ModuleSkeleton title="// NEURAL MAP" />}>
-                  <NeuralActivity />
+        {/* Dynamic Workspace: Task Manager Performance Monitor OR Holographic HUD */}
+        {activeNav === 'PERFORMANCE' ? (
+          <Suspense fallback={<ModuleSkeleton title="// PERFORMANCE MONITOR" />}>
+            <PerformanceMonitor />
+          </Suspense>
+        ) : (
+          /* Dashboard Grid Container - Proportional flex rows with 0 page scroll */
+          <main className="flex-1 min-h-0 p-2 flex flex-col gap-2 overflow-hidden">
+            
+            {/* ROW 1 (Hero Row ~37% Height) */}
+            <div className="flex-[3.7] min-h-0 grid grid-cols-12 gap-2 items-stretch">
+              {/* Left: Core Status */}
+              <div className="col-span-3 h-full">
+                <Suspense fallback={<ModuleSkeleton title="// CORE STATUS" />}>
+                  <CoreStatus />
                 </Suspense>
               </div>
-              <div className="flex-1 min-h-0">
-                <Suspense fallback={<ModuleSkeleton title="// CONVERSATION STREAM" />}>
-                  <SystemLogs />
+
+              {/* Center: Central 3D Hologram Micro-Module */}
+              <div className="col-span-6 h-full hud-panel rounded overflow-hidden relative">
+                <div className="hud-corner hud-corner-tl" />
+                <div className="hud-corner hud-corner-tr" />
+                <div className="hud-corner hud-corner-bl" />
+                <div className="hud-corner hud-corner-br" />
+                <Suspense fallback={<ModuleSkeleton title="// CENTRAL HOLOGRAM" />}>
+                  <CentralHologram />
+                </Suspense>
+              </div>
+
+              {/* Right: Human Biometric Interface Micro-Module */}
+              <div className="col-span-3 h-full">
+                <Suspense fallback={<ModuleSkeleton title="// HUMAN INTERFACE" />}>
+                  <HumanInterface />
                 </Suspense>
               </div>
             </div>
 
-            {/* Center: Resource Overview & Network Traffic Micro-Modules */}
-            <div className="col-span-6 h-full grid grid-cols-2 gap-2">
-              <Suspense fallback={<ModuleSkeleton title="// RESOURCES" />}>
-                <ResourceOverview />
+            {/* ROW 2 (Mid Telemetry Row ~33% Height) */}
+            <div className="flex-[3.3] min-h-0 grid grid-cols-12 gap-2 items-stretch">
+              {/* Left: Neural Wave + Live Conversation Stream */}
+              <div className="col-span-3 h-full flex flex-col gap-2 overflow-hidden">
+                <div className="shrink-0">
+                  <Suspense fallback={<ModuleSkeleton title="// NEURAL MAP" />}>
+                    <NeuralActivity />
+                  </Suspense>
+                </div>
+                <div className="flex-1 min-h-0">
+                  <Suspense fallback={<ModuleSkeleton title="// CONVERSATION STREAM" />}>
+                    <SystemLogs />
+                  </Suspense>
+                </div>
+              </div>
+
+              {/* Center: Resource Overview & Network Traffic Micro-Modules */}
+              <div className="col-span-6 h-full grid grid-cols-2 gap-2">
+                <Suspense fallback={<ModuleSkeleton title="// RESOURCES" />}>
+                  <ResourceOverview />
+                </Suspense>
+                <Suspense fallback={<ModuleSkeleton title="// NETWORK TRAFFIC" />}>
+                  <NetworkActivity />
+                </Suspense>
+              </div>
+
+              {/* Right: Performance Widget & Real-Time Alert Feed */}
+              <div className="col-span-3 h-full flex flex-col gap-2 overflow-hidden">
+                <div className="flex-1 min-h-0">
+                  <Suspense fallback={<ModuleSkeleton title="// PERFORMANCE" />}>
+                    <PerformanceWidget />
+                  </Suspense>
+                </div>
+                <div className="shrink-0">
+                  <Suspense fallback={<ModuleSkeleton title="// REAL-TIME FEED" />}>
+                    <RealTimeFeed />
+                  </Suspense>
+                </div>
+              </div>
+            </div>
+
+            {/* ROW 3 (Bottom Telemetry Row ~30% Height) */}
+            <div className="flex-[3] min-h-0 grid grid-cols-4 gap-2 items-stretch">
+              <Suspense fallback={<ModuleSkeleton title="// ENVIRONMENT" />}>
+                <EnvironmentalScan />
               </Suspense>
-              <Suspense fallback={<ModuleSkeleton title="// NETWORK TRAFFIC" />}>
-                <NetworkActivity />
+              <Suspense fallback={<ModuleSkeleton title="// THREAT MAP" />}>
+                <ThreatMap />
+              </Suspense>
+              <Suspense fallback={<ModuleSkeleton title="// QUANTUM LINK" />}>
+                <QuantumLinkStatus />
+              </Suspense>
+              <Suspense fallback={<ModuleSkeleton title="// PREDICTIVE" />}>
+                <PredictiveAnalytics />
               </Suspense>
             </div>
 
-            {/* Right: AI Agents Roster & Real-Time Alert Feed */}
-            <div className="col-span-3 h-full flex flex-col gap-2 overflow-hidden">
-              <div className="flex-1 min-h-0">
-                <Suspense fallback={<ModuleSkeleton title="// AI AGENTS" />}>
-                  <AiAgents />
-                </Suspense>
-              </div>
-              <div className="shrink-0">
-                <Suspense fallback={<ModuleSkeleton title="// REAL-TIME FEED" />}>
-                  <RealTimeFeed />
-                </Suspense>
-              </div>
-            </div>
-          </div>
-
-          {/* ROW 3 (Bottom Telemetry Row ~30% Height) */}
-          <div className="flex-[3] min-h-0 grid grid-cols-4 gap-2 items-stretch">
-            <Suspense fallback={<ModuleSkeleton title="// ENVIRONMENT" />}>
-              <EnvironmentalScan />
-            </Suspense>
-            <Suspense fallback={<ModuleSkeleton title="// THREAT MAP" />}>
-              <ThreatMap />
-            </Suspense>
-            <Suspense fallback={<ModuleSkeleton title="// QUANTUM LINK" />}>
-              <QuantumLinkStatus />
-            </Suspense>
-            <Suspense fallback={<ModuleSkeleton title="// PREDICTIVE" />}>
-              <PredictiveAnalytics />
-            </Suspense>
-          </div>
-
-        </main>
+          </main>
+        )}
       </div>
 
       {/* 3. BOTTOM COMMAND BAR FOOTER */}
@@ -159,7 +167,6 @@ export default function App() {
 
       {/* Interactive Floating Modals (Lazy Loaded) */}
       <Suspense fallback={null}>
-        <AgentModal />
         <ThreatModal />
         <QuickAccessModal />
       </Suspense>

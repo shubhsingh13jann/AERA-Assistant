@@ -3,7 +3,7 @@ import { useNexusStore } from '../../core/nexusStore';
 import { soundService } from '../../core/soundService';
 import {
   LayoutDashboard,
-  Bot,
+  Activity,
   Grid,
   Box,
   Sliders,
@@ -31,7 +31,7 @@ export const Sidebar = () => {
 
   const navItems = [
     { id: 'DASHBOARD', label: 'DASHBOARD', icon: LayoutDashboard },
-    { id: 'AI AGENTS', label: 'AI AGENTS', icon: Bot },
+    { id: 'PERFORMANCE', label: 'PERFORMANCE', icon: Activity },
     { id: 'DATA MATRIX', label: 'DATA MATRIX', icon: Grid },
     { id: 'MODELS', label: 'MODELS', icon: Box },
     { id: 'AUTOMATIONS', label: 'AUTOMATIONS', icon: Sliders },

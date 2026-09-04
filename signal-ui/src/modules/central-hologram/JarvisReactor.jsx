@@ -20,7 +20,7 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
     let animationId;
 
     const particles = [];
-    const particleCount = isDormantState ? 18 : 42;
+    const particleCount = isDormantState ? 0 : 42;
 
     const w = 600;
     const h = 600;

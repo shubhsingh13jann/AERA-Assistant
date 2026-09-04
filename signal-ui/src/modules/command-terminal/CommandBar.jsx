@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNexusStore } from '../../core/nexusStore';
 import { soundFx } from '../../core/soundService';
+import { eventBus, EVENTS } from '../../core/eventBus';
 import {
   Crosshair,
   Maximize,
@@ -24,6 +25,7 @@ export const CommandBar = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    eventBus.publish(EVENTS.USER_ACTIVITY);
     if (!inputVal.trim()) return;
 
     const res = executeCommand(inputVal);
@@ -37,6 +39,7 @@ export const CommandBar = () => {
 
   const handleKeyDown = () => {
     soundFx.terminalKey();
+    eventBus.publish(EVENTS.USER_ACTIVITY);
   };
 
   const toggleFullscreen = () => {

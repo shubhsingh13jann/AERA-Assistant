@@ -41,6 +41,7 @@ export const eventBus = new EventBus();
 
 // Standard Microservice Event Topics
 export const EVENTS = {
+  USER_ACTIVITY: 'user:activity',
   COMMAND_DISPATCHED: 'cli:command_dispatched',
   CONVERSATION_MESSAGE: 'conversation:message_added',
   TELEMETRY_UPDATED: 'telemetry:hardware_tick',

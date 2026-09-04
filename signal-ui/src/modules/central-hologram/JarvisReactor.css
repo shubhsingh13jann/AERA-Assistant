@@ -186,16 +186,23 @@
 
 /* 5. DYNAMIC STATE MODIFIERS */
 
-/* DORMANT MODE (No conversation / Low power idle) */
+/* DORMANT MODE (Power-Off Mode: No activity for 10s -> turn off all lights & movement) */
 .jarvis-reactor-container[data-state="dormant"] .jarvis-reactor-svg {
-  opacity: 0.45;
-  filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.3));
+  opacity: 0 !important;
+  filter: none !important;
+  transition: opacity 0.8s ease-in-out, filter 0.8s ease-in-out;
 }
-.jarvis-reactor-container[data-state="dormant"] .spin-clockwise-slow {
-  animation-duration: 36s;
-}
-.jarvis-reactor-container[data-state="dormant"] .spin-counter-slow {
-  animation-duration: 30s;
+.jarvis-reactor-container[data-state="dormant"] .spin-clockwise-slow,
+.jarvis-reactor-container[data-state="dormant"] .spin-clockwise-fast,
+.jarvis-reactor-container[data-state="dormant"] .spin-counter-slow,
+.jarvis-reactor-container[data-state="dormant"] .spin-counter-fast,
+.jarvis-reactor-container[data-state="dormant"] .spin-base-ring,
+.jarvis-reactor-container[data-state="dormant"] .spin-base-ring-counter,
+.jarvis-reactor-container[data-state="dormant"] .pulse-core-soft,
+.jarvis-reactor-container[data-state="dormant"] .pulse-core-intense,
+.jarvis-reactor-container[data-state="dormant"] .pulse-core-warning,
+.jarvis-reactor-container[data-state="dormant"] .radar-scan-sweep {
+  animation: none !important;
 }
 
 /* IDLE MODE */

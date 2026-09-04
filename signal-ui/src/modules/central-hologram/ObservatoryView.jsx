@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNexusStore } from '../../core/nexusStore';
 import { soundService } from '../../core/soundService';
+import { eventBus, EVENTS } from '../../core/eventBus';
 import { JarvisReactor } from './JarvisReactor';
 import { Database, Lightbulb, BarChart3, Box } from 'lucide-react';
 
@@ -69,6 +70,7 @@ export const ObservatoryView = () => {
 
   const handleAction = (label, query) => {
     soundService.buttonClick();
+    resetInactivityTimer();
     addConversationMessage('user', query);
 
     // If testing error state
@@ -142,7 +144,7 @@ export const ObservatoryView = () => {
             <span className={`w-1 h-2.5 rounded-full animate-pulse [animation-delay:300ms] ${currentState === 'error' ? 'bg-rose-400' : 'bg-cyan-400'}`} />
           </div>
           <span className={`text-xs font-medium tracking-wide ${currentState === 'error' ? 'text-rose-200 font-bold' : 'text-slate-200'}`}>
-            {currentState === 'error' ? 'Command Failed / Not Found' : currentState === 'dormant' ? 'Standby Mode' : 'Listening...'}
+            {currentState === 'error' ? 'Command Failed / Not Found' : currentState === 'dormant' ? 'Reactor OFF (10s Inactive)' : 'Listening...'}
           </span>
         </div>
 
@@ -156,7 +158,7 @@ export const ObservatoryView = () => {
             : 'bg-slate-900/60 border-blue-500/25 text-slate-200 shadow-[0_4px_20px_rgba(0,0,0,0.5)]'
         }`}>
           <span className="text-xs font-medium tracking-wide">
-            {currentState === 'error' ? 'Threat / Warning' : currentState === 'dormant' ? 'Core Dormant' : 'Processing...'}
+            {currentState === 'error' ? 'Threat / Warning' : currentState === 'dormant' ? 'Lights OFF (Standby)' : 'Processing...'}
           </span>
           <div className={`flex items-center gap-1 ${currentState === 'error' ? 'text-rose-400' : 'text-blue-400'}`}>
             <span className={`w-1 h-2.5 rounded-full animate-pulse ${currentState === 'error' ? 'bg-rose-400' : 'bg-blue-400'}`} />

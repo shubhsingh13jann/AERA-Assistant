@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNexusStore } from '../../core/nexusStore';
 import { soundService } from '../../core/soundService';
-import { Sun, ChevronDown, User } from 'lucide-react';
+import { Sun, ChevronDown, User, RotateCcw } from 'lucide-react';
 
 export const HeaderNav = ({ className = '' }) => {
   const [timeStr, setTimeStr] = useState('');
@@ -30,6 +30,19 @@ export const HeaderNav = ({ className = '' }) => {
           {timeStr || '11:47 PM'}
         </div>
       </div>
+
+            {/* Refresh Interface (Reload) Button */}
+      <button
+        onClick={() => {
+          soundService.click();
+          window.location.reload();
+        }}
+        onMouseEnter={() => soundService.hover()}
+        className="w-9 h-9 rounded-full bg-[#0a1224]/80 border border-cyan-500/25 flex items-center justify-center text-slate-300 hover:text-cyan-300 hover:border-cyan-400/50 hover:shadow-[0_0_12px_rgba(0,240,255,0.3)] transition-all cursor-pointer group"
+        title="Refresh Interface (Reload)"
+      >
+        <RotateCcw className="w-4 h-4 text-cyan-300 group-hover:rotate-[-180deg] transition-transform duration-500" />
+      </button>
 
       {/* Sun / Theme Button */}
       <button

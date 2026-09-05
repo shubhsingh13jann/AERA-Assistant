@@ -233,7 +233,7 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
           <ellipse
             cx="392"
             cy="596"
-            rx="92"
+            rx="86"
             ry="14"
             stroke={mainStroke}
             strokeWidth="2.5"
@@ -243,7 +243,7 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
           <ellipse
             cx="392"
             cy="596"
-            rx="102"
+            rx="96"
             ry="15.5"
             stroke={secondaryStroke}
             strokeWidth="1.8"

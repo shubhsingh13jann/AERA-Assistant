@@ -228,12 +228,12 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
           <line x1="442" y1="599" x2="425" y2="380" stroke={secondaryStroke} strokeWidth="1.2" />
           <line x1="498" y1="599" x2="460" y2="380" stroke={dimStroke} strokeWidth="1" />
 
-          {/* A. INNER BASE RING SET (Pushed further inward from left, right, and front) */}
+          {/* A. INNER BASE RING SET (Pushed further inward from left & right) */}
           {/* Solid Inner Base Anchor Ring */}
           <ellipse
             cx="392"
             cy="596"
-            rx="98"
+            rx="92"
             ry="14"
             stroke={mainStroke}
             strokeWidth="2.5"
@@ -243,7 +243,7 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
           <ellipse
             cx="392"
             cy="596"
-            rx="108"
+            rx="102"
             ry="15.5"
             stroke={secondaryStroke}
             strokeWidth="1.8"

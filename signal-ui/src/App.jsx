@@ -27,6 +27,9 @@ export default function App() {
   useEffect(() => {
     window.setOrbState = (state) => useNexusStore.getState().setOrbState(state);
     window.addMessage = (role, text) => useNexusStore.getState().addConversationMessage(role, text);
+    window.addStructuredMessage = (payload) => {
+      useNexusStore.getState().addConversationMessage(payload.role, payload.text, payload.card);
+    };
     window.setMicLevel = (level, name) => useNexusStore.getState().setMicLevel(level, name);
   }, []);
 

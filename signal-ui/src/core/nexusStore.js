@@ -170,15 +170,21 @@ export const useNexusStore = create((set, get) => {
       set({ logViewMode: mode });
     },
 
-    addConversationMessage: (role, text) => {
+    addConversationMessage: (role, text, card = null) => {
       const time = new Date().toLocaleTimeString('en-US', { hour12: false });
-      const tag = detectIntentTag(text);
+      let tag = detectIntentTag(text);
+      if (card) {
+        if (card.type === 'weather') tag = { label: 'WEATHER', color: 'border-amber-500/40 text-amber-400 bg-amber-950/40' };
+        else if (card.type === 'news') tag = { label: 'NEWS', color: 'border-sky-500/40 text-sky-400 bg-sky-950/40' };
+        else if (card.type === 'media') tag = { label: 'MEDIA', color: 'border-red-500/40 text-red-400 bg-red-950/40' };
+      }
       const newMsg = {
         id: `msg-${Date.now()}-${Math.random()}`,
         role,
         text,
         time,
         tag,
+        card,
       };
 
       set((state) => ({

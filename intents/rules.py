@@ -33,6 +33,16 @@ class Intent:
     pattern: "re.Pattern"
     handler: Callable
 
+def _handle_weather_tomorrow(match):
+    m_city = re.search(r"\b(?:in|for|at)\s+([a-zA-Z\s]+)", match.string, re.I)
+    if m_city:
+        city = m_city.group(1).strip()
+        city = re.sub(r"\b(tomorrow|today)\b", "", city, flags=re.I).strip()
+        if city:
+            return get_weather(f"tomorrow in {city}")
+    return get_weather("tomorrow")
+
+
 INTENTS = [
     Intent("amazon_search_open", re.compile(r"open amazon and search (.+)"),
            lambda m: search_amazon(m.group(1))),
@@ -46,17 +56,17 @@ INTENTS = [
            lambda m: play_youtube(m.group(1))),
 
     # Live Topic & General News (Gaming, Tech, World, Science, Business, etc.)
-    Intent("news_topic", re.compile(r"(?:tell me (?:about )?(?:the )?|what(?:'s| is) (?:the )?|give me (?:the )?|show me (?:the )?)?(?:latest |today(?:'s)? |top )?([a-z0-9\s_-]+?)\s+news(?: today)?", re.I),
+    Intent("news_topic", re.compile(r"\b(?!(?:the|latest|top|today|todays|current|breaking|some|any|a|read|me)\b)([a-zA-Z0-9_-]+)\s+(?:news|headlines)\b", re.I),
            lambda m: get_news(m.group(1).strip())),
-    Intent("news_general", re.compile(r"(?:tell me (?:the )?|what(?:'s| is) (?:the )?)?(?:latest |top )?(?:news|headlines)(?: today)?", re.I),
+    Intent("news_general", re.compile(r"\b(?:news|headlines|breaking news)\b", re.I),
            lambda m: get_news("tech")),
 
     # Real-time Weather, Temperature & Forecast
-    Intent("weather_tomorrow", re.compile(r"(?:what(?:'s| will be| is) (?:the )?)?(?:weather|temperature|forecast).*\btomorrow\b.*", re.I),
-           lambda m: get_weather("tomorrow")),
-    Intent("weather_explicit", re.compile(r"(?:what(?:'s| is| will be) (?:the )?)?(?:weather|temperature|forecast) (?:in|for|at) (.+)", re.I),
-           lambda m: get_weather(m.group(1))),
-    Intent("weather_general", re.compile(r"(?:what(?:'s| is| will be) (?:the )?)?(?:weather|temperature|forecast|climate)|(?:how (?:hot|cold) is it)|(?:is it (?:going to )?rain)", re.I),
+    Intent("weather_tomorrow", re.compile(r".*\btomorrow\b.*(?:\bweather\b|\btemperature\b|\bforecast\b|\bclimate\b|\brain\b|\bhow hot\b|\bhow cold\b|\bhot\b|\bcold\b|\bdegrees\b)|(?:\bweather\b|\btemperature\b|\bforecast\b|\bclimate\b|\brain\b|\bhow hot\b|\bhow cold\b|\bhot\b|\bcold\b|\bdegrees\b).*\btomorrow\b", re.I),
+           _handle_weather_tomorrow),
+    Intent("weather_explicit", re.compile(r"(?:weather|temperature|forecast|climate|rain).*\b(?:in|for|at)\s+([a-zA-Z\s]+)", re.I),
+           lambda m: get_weather(m.group(1).strip())),
+    Intent("weather_general", re.compile(r"\b(?:weather|temperature|temp|forecast|climate|rain|raining|how hot|how cold|hot outside|cold outside|is it hot|is it cold|degrees outside|sunny outside)\b", re.I),
            lambda m: get_weather("")),
 
     Intent("spotify_search_on", re.compile(r"search (.+?) on spotify"),

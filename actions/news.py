@@ -50,6 +50,20 @@ def get_news(topic: str = "tech") -> dict:
     raw_topic = (topic or "").strip()
     topic_lower = raw_topic.lower()
 
+    # Filter out conversational filler and generic news tokens
+    cleaned_topic = re.sub(
+        r"\b(tell|give|show|read|me|the|about|latest|top|today(?:'s)?|breaking|current|news|headlines?)\b",
+        "",
+        topic_lower,
+    ).strip()
+
+    if not cleaned_topic:
+        topic_lower = "tech"
+        raw_topic = "tech"
+    else:
+        topic_lower = cleaned_topic
+        raw_topic = cleaned_topic
+
     # Identify matching feed
     matched_key = "tech"
     if any(g in topic_lower for g in ["game", "gaming", "esports", "playstation", "xbox", "nintendo"]):

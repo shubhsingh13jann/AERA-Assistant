@@ -71,16 +71,24 @@ def _geocode_city(city_name: str):
 def get_weather(location: str = "") -> dict:
     """
     Fetch live weather and return speech text + structured card metadata.
+    Supports current conditions, tomorrow's forecast, and explicit cities.
     """
-    location_clean = (location or "").strip()
-    is_tomorrow = "tomorrow" in location_clean.lower()
-    # Normalize common phrases
-    for stop in ["today", "now", "here", "current", "outside", "weather", "forecast", "tomorrow"]:
-        if location_clean.lower() == stop:
-            location_clean = ""
+    import re
 
-    if location_clean:
-        geo = _geocode_city(location_clean)
+    location_clean = (location or "").strip()
+    is_tomorrow = bool(re.search(r"\btomorrow\b", location_clean, re.I))
+
+    # Strip filler and time tokens to isolate the city name if provided
+    city_candidate = re.sub(
+        r"\b(tomorrow|today|now|here|current|currently|outside|weather|temperature|forecast|climate|in|for|at|the|like|degrees?)\b",
+        "",
+        location_clean,
+        flags=re.I,
+    ).strip()
+    city_candidate = re.sub(r"\s+", " ", city_candidate).strip()
+
+    if city_candidate:
+        geo = _geocode_city(city_candidate)
         if geo:
             city, country, lat, lon = geo
         else:

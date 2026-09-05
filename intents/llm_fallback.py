@@ -114,17 +114,18 @@ def ask_llm(text: str):
     t_lower = t_clean.lower()
 
     # 1. Instant check: If the user is asking about weather / temperature / forecast / rain
-    if any(k in t_lower for k in ["weather", "temperature", "forecast", "how hot", "how cold", "rain"]):
+    if any(k in t_lower for k in ["weather", "temperature", "temp", "forecast", "climate", "how hot", "how cold", "rain", "raining", "degrees", "sunny"]):
+        m_city = re.search(r"\b(?:in|for|at)\s+([a-zA-Z\s]+)", text, re.I)
+        city = m_city.group(1).strip() if m_city else ""
         if "tomorrow" in t_lower:
-            loc = "tomorrow"
+            loc = f"tomorrow in {city}" if city else "tomorrow"
         else:
-            m_city = re.search(r"\b(?:in|for|at)\s+([a-zA-Z\s]+)", text, re.I)
-            loc = m_city.group(1).strip() if m_city else ""
+            loc = city
         return get_weather(loc)
 
     # 2. Instant check: If user is asking about news / headlines
-    if "news" in t_lower or "headline" in t_lower:
-        m_topic = re.search(r"([a-zA-Z]+)\s+news", text, re.I)
+    if any(k in t_lower for k in ["news", "headline", "headlines", "breaking"]):
+        m_topic = re.search(r"\b(?!(?:the|latest|top|today|todays|current|breaking|some|any|a|read|me)\b)([a-zA-Z0-9_-]+)\s+(?:news|headlines)\b", text, re.I)
         topic = m_topic.group(1).lower() if m_topic else "tech"
         return get_news(topic)
 
@@ -170,6 +171,27 @@ def ask_llm(text: str):
 
         # Conversational text response
         cleaned_reply = reply.replace("*", "").replace('"', '').strip()
+
+        # Circuit breaker: Intercept any LLM refusal regarding real-time data
+        refusal_phrases = [
+            "real-time access", "real time access", "knowledge cutoff", "current events",
+            "access to your location", "unable to provide real-time", "weather app",
+            "news website", "i don't have access", "i do not have access", "cannot provide real-time"
+        ]
+        if any(rp in cleaned_reply.lower() for rp in refusal_phrases):
+            log.warning("Ollama refusal detected on prompt %r: %r. Intercepting with live tool!", text, cleaned_reply)
+            if any(k in t_lower for k in ["weather", "temperature", "forecast", "climate", "hot", "cold", "rain", "snow"]):
+                res = get_weather("tomorrow" if "tomorrow" in t_lower else "")
+                _conversation_history.append({"role": "user", "content": text})
+                _conversation_history.append({"role": "assistant", "content": res.get("speech", "")})
+                return res
+            if any(k in t_lower for k in ["news", "headline", "game", "gaming", "tech", "event", "happening"]):
+                res = get_news("gaming" if any(g in t_lower for g in ["game", "gaming"]) else "tech")
+                _conversation_history.append({"role": "user", "content": text})
+                _conversation_history.append({"role": "assistant", "content": res.get("speech", "")})
+                return res
+            return search_google(text)
+
         _conversation_history.append({"role": "user", "content": text})
         _conversation_history.append({"role": "assistant", "content": cleaned_reply})
         return cleaned_reply

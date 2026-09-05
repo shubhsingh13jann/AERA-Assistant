@@ -98,3 +98,43 @@ def test_gaming_news_route():
     with patch("intents.rules.get_news", return_value={"speech": "ok"}) as mock_news:
         route("Tell me the latest gaming news")
     mock_news.assert_called_once_with("gaming")
+
+
+def test_temperature_today():
+    with patch("intents.rules.get_weather", return_value={"speech": "ok"}) as mock_weather:
+        route("what is the temperature today")
+    mock_weather.assert_called_once_with("")
+
+
+def test_is_it_hot_outside():
+    with patch("intents.rules.get_weather", return_value={"speech": "ok"}) as mock_weather:
+        route("is it hot outside")
+    mock_weather.assert_called_once_with("")
+
+
+def test_will_it_rain_tomorrow():
+    with patch("intents.rules.get_weather", return_value={"speech": "ok"}) as mock_weather:
+        route("will it rain tomorrow")
+    mock_weather.assert_called_once_with("tomorrow")
+
+
+def test_headlines_route():
+    with patch("intents.rules.get_news", return_value={"speech": "ok"}) as mock_news:
+        route("tell me the headlines")
+    mock_news.assert_called_once_with("tech")
+
+
+def test_read_me_the_news():
+    with patch("intents.rules.get_news", return_value={"speech": "ok"}) as mock_news:
+        route("read me the news")
+    mock_news.assert_called_once_with("tech")
+
+
+def test_llm_refusal_circuit_breaker():
+    from intents.llm_fallback import ask_llm
+    with patch("ollama.chat", return_value={"message": {"content": "I'm afraid I don't have real-time access to current events, Sir."}}), \
+         patch("intents.llm_fallback.get_news", return_value={"speech": "Live news fetched"}) as mock_get_news:
+        result = ask_llm("what is happening in world events today")
+    # Circuit breaker must intercept the canned refusal and return live news
+    assert result == {"speech": "Live news fetched"}
+    mock_get_news.assert_called_once()

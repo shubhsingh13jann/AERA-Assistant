@@ -11,3 +11,5 @@ pywin32
 psutil
 pycaw
 comtypes
+edge-tts
+pygame

@@ -21,6 +21,7 @@ from actions.web import (
     play_youtube, play_spotify,
 )
 from actions.weather import get_weather
+from actions.news import get_news
 from actions.system import (
     volume_up, volume_down, set_volume, toggle_mute, play_pause, hold_pause,
     next_track, previous_track, lock_screen,
@@ -43,6 +44,14 @@ INTENTS = [
            lambda m: play_youtube(m.group(1))),
     Intent("youtube_play_on", re.compile(r"play (.+?) on youtube"),
            lambda m: play_youtube(m.group(1))),
+
+    # Live Tech & World News
+    Intent("news_tech", re.compile(r"(?:tell me (?:the )?|what(?:'s| is) (?:the )?)?(?:latest |today(?:'s)? )?(?:tech|technology) news(?: today)?"),
+           lambda m: get_news("tech")),
+    Intent("news_world", re.compile(r"(?:tell me (?:the )?|what(?:'s| is) (?:the )?)?(?:latest |today(?:'s)? )?world news(?: today)?"),
+           lambda m: get_news("world")),
+    Intent("news_general", re.compile(r"^(?:(?:tell me (?:the )?|what(?:'s| is) (?:the )?)?(?:latest |top )?headlines(?: today)?|(?:the )?news(?: today)?)$"),
+           lambda m: get_news("tech")),
 
     # Real-time Weather & Forecast
     Intent("weather_explicit", re.compile(r"(?:what(?:'s| is) (?:the )?)?weather (?:in|for|at) (.+)"),

@@ -73,8 +73,9 @@ def get_weather(location: str = "") -> dict:
     Fetch live weather and return speech text + structured card metadata.
     """
     location_clean = (location or "").strip()
+    is_tomorrow = "tomorrow" in location_clean.lower()
     # Normalize common phrases
-    for stop in ["today", "now", "here", "current", "outside", "weather", "forecast"]:
+    for stop in ["today", "now", "here", "current", "outside", "weather", "forecast", "tomorrow"]:
         if location_clean.lower() == stop:
             location_clean = ""
 
@@ -114,7 +115,7 @@ def get_weather(location: str = "") -> dict:
         # 3-day forecast list
         forecast_items = []
         for i in range(min(3, len(dates))):
-            d_name = "Today" if i == 0 else datetime.strptime(dates[i], "%Y-%m-%d").strftime("%a")
+            d_name = "Today" if i == 0 else "Tomorrow" if i == 1 else datetime.strptime(dates[i], "%Y-%m-%d").strftime("%a")
             d_cond, d_icon = WMO_CODE_MAP.get(codes[i] if i < len(codes) else 0, ("Clear", "sun"))
             forecast_items.append({
                 "day": d_name,
@@ -124,14 +125,23 @@ def get_weather(location: str = "") -> dict:
                 "icon": d_icon,
             })
 
-        speech = (
-            f"Currently in {city}, it's {temp} degrees Celsius with {cond_text.lower()}, "
-            f"reaching a high of {high} degrees today with winds at {wind} kilometers per hour, Sir."
-        )
+        if is_tomorrow and len(forecast_items) > 1:
+            tom = forecast_items[1]
+            speech = (
+                f"Tomorrow in {city}, the temperature will reach a high of {tom['high']} degrees Celsius "
+                f"and a low of {tom['low']} degrees with {tom['condition'].lower()}, Sir."
+            )
+            text_summary = f"Tomorrow in {city}: High {tom['high']}°C, Low {tom['low']}°C, {tom['condition']}."
+        else:
+            speech = (
+                f"Currently in {city}, it's {temp} degrees Celsius with {cond_text.lower()}, "
+                f"reaching a high of {high} degrees today with winds at {wind} kilometers per hour, Sir."
+            )
+            text_summary = f"Weather in {city}: {temp}°C, {cond_text}. High: {high}°C, Low: {low}°C, Wind: {wind} km/h."
 
         return {
             "speech": speech,
-            "text": f"Weather in {city}: {temp}°C, {cond_text}. High: {high}°C, Low: {low}°C, Wind: {wind} km/h.",
+            "text": text_summary,
             "card": {
                 "type": "weather",
                 "data": {

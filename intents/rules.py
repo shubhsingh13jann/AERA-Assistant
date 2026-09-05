@@ -45,18 +45,18 @@ INTENTS = [
     Intent("youtube_play_on", re.compile(r"play (.+?) on youtube"),
            lambda m: play_youtube(m.group(1))),
 
-    # Live Tech & World News
-    Intent("news_tech", re.compile(r"(?:tell me (?:the )?|what(?:'s| is) (?:the )?)?(?:latest |today(?:'s)? )?(?:tech|technology) news(?: today)?"),
-           lambda m: get_news("tech")),
-    Intent("news_world", re.compile(r"(?:tell me (?:the )?|what(?:'s| is) (?:the )?)?(?:latest |today(?:'s)? )?world news(?: today)?"),
-           lambda m: get_news("world")),
-    Intent("news_general", re.compile(r"^(?:(?:tell me (?:the )?|what(?:'s| is) (?:the )?)?(?:latest |top )?headlines(?: today)?|(?:the )?news(?: today)?)$"),
+    # Live Topic & General News (Gaming, Tech, World, Science, Business, etc.)
+    Intent("news_topic", re.compile(r"(?:tell me (?:about )?(?:the )?|what(?:'s| is) (?:the )?|give me (?:the )?|show me (?:the )?)?(?:latest |today(?:'s)? |top )?([a-z0-9\s_-]+?)\s+news(?: today)?", re.I),
+           lambda m: get_news(m.group(1).strip())),
+    Intent("news_general", re.compile(r"(?:tell me (?:the )?|what(?:'s| is) (?:the )?)?(?:latest |top )?(?:news|headlines)(?: today)?", re.I),
            lambda m: get_news("tech")),
 
-    # Real-time Weather & Forecast
-    Intent("weather_explicit", re.compile(r"(?:what(?:'s| is) (?:the )?)?weather (?:in|for|at) (.+)"),
+    # Real-time Weather, Temperature & Forecast
+    Intent("weather_tomorrow", re.compile(r"(?:what(?:'s| will be| is) (?:the )?)?(?:weather|temperature|forecast).*\btomorrow\b.*", re.I),
+           lambda m: get_weather("tomorrow")),
+    Intent("weather_explicit", re.compile(r"(?:what(?:'s| is| will be) (?:the )?)?(?:weather|temperature|forecast) (?:in|for|at) (.+)", re.I),
            lambda m: get_weather(m.group(1))),
-    Intent("weather_general", re.compile(r"^(?:what(?:'s| is) (?:the )?)?weather(?: today| outside)?|weather forecast|today(?:'s)? weather|how(?:'s| is) the weather$"),
+    Intent("weather_general", re.compile(r"(?:what(?:'s| is| will be) (?:the )?)?(?:weather|temperature|forecast|climate)|(?:how (?:hot|cold) is it)|(?:is it (?:going to )?rain)", re.I),
            lambda m: get_weather("")),
 
     Intent("spotify_search_on", re.compile(r"search (.+?) on spotify"),

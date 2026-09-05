@@ -30,8 +30,9 @@ JARVIS_SYSTEM_PROMPT = (
     "You serve your user with a polite, witty, concise, and sophisticated demeanor. "
     "Always address the user respectfully (e.g. 'Sir' or 'Boss'). "
     "Keep responses concise (1 to 2 sentences) because your response will be spoken aloud.\n\n"
-    "ACTIONS:\n"
-    "If the user wants you to execute an action on their computer, reply with ONLY the exact function call:\n"
+    "REAL-TIME CAPABILITIES & ACTIONS:\n"
+    "You HAVE FULL ACCESS to live real-time tools! NEVER say 'I don't have real-time access' or 'check a website/app'.\n"
+    "If the user wants an action or real-time data, reply with ONLY the exact function call on line 1:\n"
     "- open_app(name)\n"
     "- close_app(name)\n"
     "- snap_window(left/right)\n"
@@ -50,7 +51,7 @@ JARVIS_SYSTEM_PROMPT = (
     "- previous_track()\n"
     "- lock_screen()\n\n"
     "CONVERSATION & GENERAL KNOWLEDGE:\n"
-    "If the user is greeting you, having a chat, or asking a factual question (e.g. 'hi how are you', "
+    "If the user is greeting you, having a chat, or asking a general question (e.g. 'hi how are you', "
     "'who made you', 'tell me a joke', 'what is quantum computing'):\n"
     "DO NOT output an action call. Reply directly in your sophisticated JARVIS voice in 1-2 spoken sentences. "
     "Never use asterisks, emojis, or markdown bullets."
@@ -109,7 +110,25 @@ def ask_llm(text: str):
     """
     global _conversation_history
 
-    # Check instant conversational cache first for zero-latency greetings
+    t_clean = text.strip()
+    t_lower = t_clean.lower()
+
+    # 1. Instant check: If the user is asking about weather / temperature / forecast / rain
+    if any(k in t_lower for k in ["weather", "temperature", "forecast", "how hot", "how cold", "rain"]):
+        if "tomorrow" in t_lower:
+            loc = "tomorrow"
+        else:
+            m_city = re.search(r"\b(?:in|for|at)\s+([a-zA-Z\s]+)", text, re.I)
+            loc = m_city.group(1).strip() if m_city else ""
+        return get_weather(loc)
+
+    # 2. Instant check: If user is asking about news / headlines
+    if "news" in t_lower or "headline" in t_lower:
+        m_topic = re.search(r"([a-zA-Z]+)\s+news", text, re.I)
+        topic = m_topic.group(1).lower() if m_topic else "tech"
+        return get_news(topic)
+
+    # 3. Check instant conversational cache first for zero-latency greetings
     quick = _quick_conversational_reply(text)
     if quick:
         _conversation_history.append({"role": "user", "content": text})

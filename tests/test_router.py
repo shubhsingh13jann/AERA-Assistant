@@ -82,7 +82,19 @@ def test_weather_route():
     mock_weather.assert_called_once_with("tokyo")
 
 
+def test_temperature_tomorrow():
+    with patch("intents.rules.get_weather", return_value={"speech": "ok"}) as mock_weather:
+        route("what will be the temperature tomorrow")
+    mock_weather.assert_called_once_with("tomorrow")
+
+
 def test_news_route():
     with patch("intents.rules.get_news", return_value={"speech": "ok"}) as mock_news:
         route("tell me the latest tech news today")
     mock_news.assert_called_once_with("tech")
+
+
+def test_gaming_news_route():
+    with patch("intents.rules.get_news", return_value={"speech": "ok"}) as mock_news:
+        route("Tell me the latest gaming news")
+    mock_news.assert_called_once_with("gaming")

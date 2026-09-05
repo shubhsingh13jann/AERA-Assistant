@@ -110,3 +110,4 @@ def get_news(topic: str = "tech") -> dict:
             "text": fallback_speech,
             "card": None,
         }
+

@@ -216,41 +216,39 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
           </radialGradient>
         </defs>
 
-        {/* 1. PROJECTION BASE & UPWARD LIGHT BEAMS (y = 650) */}
+        {/* 1. SINGLE UNIFIED PROJECTION BASE & UPWARD LIGHT BEAMS (y = 600 - Height Locked) */}
         <g className="projection-base-group">
           {/* Upward Volumetric Light Columns */}
           <polygon
-            points="250,650 550,650 490,380 310,380"
+            points="256,600 524,600 480,380 320,380"
             fill={beamFill}
           />
-          <line x1="290" y1="650" x2="340" y2="380" stroke={dimStroke} strokeWidth="1" />
-          <line x1="350" y1="650" x2="375" y2="380" stroke={secondaryStroke} strokeWidth="1.2" />
-          <line x1="450" y1="650" x2="425" y2="380" stroke={secondaryStroke} strokeWidth="1.2" />
-          <line x1="510" y1="650" x2="460" y2="380" stroke={dimStroke} strokeWidth="1" />
+          <line x1="286" y1="600" x2="340" y2="380" stroke={dimStroke} strokeWidth="1" />
+          <line x1="342" y1="600" x2="375" y2="380" stroke={secondaryStroke} strokeWidth="1.2" />
+          <line x1="442" y1="600" x2="425" y2="380" stroke={secondaryStroke} strokeWidth="1.2" />
+          <line x1="498" y1="600" x2="460" y2="380" stroke={dimStroke} strokeWidth="1" />
 
-          {/* Base Concentric Projection Rings */}
-          <ellipse cx="400" cy="650" rx="165" ry="25" stroke={dimStroke} strokeWidth="3" fill="none" />
-          <ellipse cx="400" cy="646" rx="130" ry="19" stroke={mainStroke} strokeWidth="2.5" fill="none" />
-          <ellipse cx="400" cy="642" rx="80" ry="12" stroke={isErrorState ? '#ffffff' : isDormantState ? '#1e293b' : 'rgba(180, 250, 255, 0.95)'} strokeWidth="2" fill="none" />
+          {/* Solid Base Anchor Ring */}
+          <ellipse cx="392" cy="600" rx="142" ry="21" stroke={mainStroke} strokeWidth="2.5" fill="none" />
 
-          {/* Seamless Dotted Ground Rings Rotating Flat on the Floor (strokeDashoffset animation) */}
+          {/* Counter-Rotating Dashed Base Rings Spinning Directly on Pedestal (Right Side Pushed Further Inside) */}
           <ellipse
-            cx="400"
-            cy="650"
-            rx="185"
-            ry="28"
+            cx="392"
+            cy="600"
+            rx="162"
+            ry="24"
             stroke={dimStroke}
-            strokeWidth="1.5"
+            strokeWidth="1.8"
             fill="none"
             className="spin-base-ring"
           />
           <ellipse
-            cx="400"
-            cy="646"
-            rx="145"
-            ry="21"
+            cx="392"
+            cy="600"
+            rx="123"
+            ry="18"
             stroke={secondaryStroke}
-            strokeWidth="1.2"
+            strokeWidth="1.5"
             fill="none"
             className="spin-base-ring-counter"
           />

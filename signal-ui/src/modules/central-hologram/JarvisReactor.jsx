@@ -216,7 +216,7 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
           </radialGradient>
         </defs>
 
-        {/* 1. SINGLE UNIFIED PROJECTION BASE & UPWARD LIGHT BEAMS (cy = 599: Back center locked at y=574, Back-left & Back-right shoulders pulled down) */}
+        {/* 1. SINGLE UNIFIED PROJECTION BASE & UPWARD LIGHT BEAMS (cy = 599: Untouched Outer Ring + New Inner Base Ring) */}
         <g className="projection-base-group">
           {/* Upward Volumetric Light Columns */}
           <polygon
@@ -228,10 +228,10 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
           <line x1="442" y1="599" x2="425" y2="380" stroke={secondaryStroke} strokeWidth="1.2" />
           <line x1="498" y1="599" x2="460" y2="380" stroke={dimStroke} strokeWidth="1" />
 
-          {/* Solid Base Anchor Ring */}
+          {/* Solid Base Anchor Ring (Untouched) */}
           <ellipse cx="392" cy="599" rx="142" ry="22" stroke={mainStroke} strokeWidth="2.5" fill="none" />
 
-          {/* Counter-Rotating Dashed Base Rings Spinning Directly on Pedestal */}
+          {/* Outer Dashed Base Ring (UNTOUCHED: rx=162, ry=25) */}
           <ellipse
             cx="392"
             cy="599"
@@ -242,15 +242,18 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
             fill="none"
             className="spin-base-ring"
           />
+
+          {/* Inner Pedestal Glowing Base Ring (Aligned directly on inner pedestal circle: rx=110, ry=17) */}
           <ellipse
             cx="392"
             cy="599"
-            rx="123"
-            ry="19"
-            stroke={secondaryStroke}
-            strokeWidth="1.5"
+            rx="110"
+            ry="17"
+            stroke={mainStroke}
+            strokeWidth="2"
             fill="none"
             className="spin-base-ring-counter"
+            filter="url(#ringGlow)"
           />
         </g>
 

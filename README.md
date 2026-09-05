@@ -1,4 +1,5 @@
 # ⚡ Signal: Local-First Windows Voice Assistant
+# ⚡ AERA Assistant: Local-First Windows Voice & Intelligence Core
 
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://www.microsoft.com/windows)
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
@@ -8,6 +9,7 @@
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
 **Signal** is a private, latency-optimized, local-first voice assistant designed specifically for Windows desktop control. Wake it with **"Hey Jarvis"**, speak naturally, and let Signal launch applications, control media and system audio, snap windows, search the web, and provide instant voice and visual feedback.
+**AERA Assistant** is a private, latency-optimized, local-first voice intelligence system designed specifically for Windows desktop control. Wake it with **"Hey Jarvis"**, speak naturally, and let AERA launch applications, control media and system audio, snap windows, search the web, and provide instant voice and visual telemetry feedback.
 
 > 🔒 **100% Private & Local**: All wake-word processing, speech transcription, intent classification, and desktop automation execute directly on your machine. No external audio streams or cloud dependencies.
 

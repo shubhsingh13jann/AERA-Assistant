@@ -216,25 +216,25 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
           </radialGradient>
         </defs>
 
-        {/* 1. SINGLE UNIFIED PROJECTION BASE & UPWARD LIGHT BEAMS (y = 600 - Height Locked) */}
+        {/* 1. SINGLE UNIFIED PROJECTION BASE & UPWARD LIGHT BEAMS (cy = 598: Back pulled down to y=574) */}
         <g className="projection-base-group">
           {/* Upward Volumetric Light Columns */}
           <polygon
-            points="256,600 524,600 480,380 320,380"
+            points="256,598 524,598 480,380 320,380"
             fill={beamFill}
           />
-          <line x1="286" y1="600" x2="340" y2="380" stroke={dimStroke} strokeWidth="1" />
-          <line x1="342" y1="600" x2="375" y2="380" stroke={secondaryStroke} strokeWidth="1.2" />
-          <line x1="442" y1="600" x2="425" y2="380" stroke={secondaryStroke} strokeWidth="1.2" />
-          <line x1="498" y1="600" x2="460" y2="380" stroke={dimStroke} strokeWidth="1" />
+          <line x1="286" y1="598" x2="340" y2="380" stroke={dimStroke} strokeWidth="1" />
+          <line x1="342" y1="598" x2="375" y2="380" stroke={secondaryStroke} strokeWidth="1.2" />
+          <line x1="442" y1="598" x2="425" y2="380" stroke={secondaryStroke} strokeWidth="1.2" />
+          <line x1="498" y1="598" x2="460" y2="380" stroke={dimStroke} strokeWidth="1" />
 
           {/* Solid Base Anchor Ring */}
-          <ellipse cx="392" cy="600" rx="142" ry="21" stroke={mainStroke} strokeWidth="2.5" fill="none" />
+          <ellipse cx="392" cy="598" rx="142" ry="21" stroke={mainStroke} strokeWidth="2.5" fill="none" />
 
-          {/* Counter-Rotating Dashed Base Rings Spinning Directly on Pedestal (Right Side Pushed Further Inside) */}
+          {/* Counter-Rotating Dashed Base Rings Spinning Directly on Pedestal */}
           <ellipse
             cx="392"
-            cy="600"
+            cy="598"
             rx="162"
             ry="24"
             stroke={dimStroke}
@@ -244,7 +244,7 @@ export const JarvisReactor = ({ state = 'idle', className = '' }) => {
           />
           <ellipse
             cx="392"
-            cy="600"
+            cy="598"
             rx="123"
             ry="18"
             stroke={secondaryStroke}

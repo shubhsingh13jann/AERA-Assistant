@@ -40,9 +40,17 @@ def on_wake(wake_word: str):
 
     set_orb_state("speaking")
     response = route(heard)
-    add_message("assistant", response)
-    log_message("assistant", response)
-    speak(response)
+    if isinstance(response, dict):
+        speech = response.get("speech", response.get("text", ""))
+        text_display = response.get("text", speech)
+        card = response.get("card")
+        add_message("assistant", text_display, card=card)
+        log_message("assistant", speech)
+        speak(speech)
+    else:
+        add_message("assistant", str(response))
+        log_message("assistant", str(response))
+        speak(str(response))
     set_orb_state("idle")
 
 

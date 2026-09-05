@@ -72,17 +72,24 @@ class JSBridge:
             time.sleep(0.3)
             try:
                 response = route(text_clean)
-                resp_lower = response.lower()
-                is_negative = any(kw in resp_lower for kw in ["couldn't", "can't", "failed", "error", "reject", "unable", "not found", "invalid", "unknown"])
-
-                if is_negative:
-                    set_orb_state("error")
-                else:
+                if isinstance(response, dict):
+                    speech = response.get("speech", response.get("text", ""))
+                    text_display = response.get("text", speech)
+                    card = response.get("card")
                     set_orb_state("speaking")
-
-                add_message("assistant", response)
-                log_message("assistant", response)
-                speak(response)
+                    add_message("assistant", text_display, card=card)
+                    log_message("assistant", speech)
+                    speak(speech)
+                else:
+                    resp_lower = str(response).lower()
+                    is_negative = any(kw in resp_lower for kw in ["couldn't", "can't", "failed", "error", "reject", "unable", "not found", "invalid", "unknown"])
+                    if is_negative:
+                        set_orb_state("error")
+                    else:
+                        set_orb_state("speaking")
+                    add_message("assistant", str(response))
+                    log_message("assistant", str(response))
+                    speak(str(response))
             except Exception as e:
                 set_orb_state("error")
                 error_msg = f"Command execution failed: {str(e)}"
@@ -151,9 +158,13 @@ def set_orb_state(state: str) -> None:
     _evaluate_javascript(f"window.setOrbState('{state}')")
 
 
-def add_message(role: str, text: str) -> None:
+def add_message(role: str, text: str, card=None) -> None:
+    payload = {"role": role, "text": text}
+    if card:
+        payload["card"] = card
+    json_str = json.dumps(payload)
     safe_text = text.replace("'", "\\'").replace("\n", " ")
-    _evaluate_javascript(f"window.addMessage('{role}', '{safe_text}')")
+    _evaluate_javascript(f"window.addStructuredMessage ? window.addStructuredMessage({json_str}) : window.addMessage('{role}', '{safe_text}');")
 
 
 def set_mic_level(device_name: str, level: int) -> None:

@@ -20,6 +20,7 @@ from actions.web import (
     search_google, search_amazon, search_youtube, search_spotify,
     play_youtube, play_spotify,
 )
+from actions.weather import get_weather
 from actions.system import (
     volume_up, volume_down, set_volume, toggle_mute, play_pause, hold_pause,
     next_track, previous_track, lock_screen,
@@ -29,8 +30,7 @@ from actions.system import (
 class Intent:
     name: str
     pattern: "re.Pattern"
-    handler: Callable[["re.Match"], str]
-
+    handler: Callable
 
 INTENTS = [
     Intent("amazon_search_open", re.compile(r"open amazon and search (.+)"),
@@ -38,10 +38,17 @@ INTENTS = [
     Intent("amazon_search_on", re.compile(r"search (.+?) on amazon"),
            lambda m: search_amazon(m.group(1))),
 
-    Intent("youtube_search_on", re.compile(r"search (.+?) on youtube"),
-           lambda m: search_youtube(m.group(1))),
+    # YouTube direct playback (both compound and direct formats)
+    Intent("youtube_open_and_play", re.compile(r"open youtube and play (.+)"),
+           lambda m: play_youtube(m.group(1))),
     Intent("youtube_play_on", re.compile(r"play (.+?) on youtube"),
            lambda m: play_youtube(m.group(1))),
+
+    # Real-time Weather & Forecast
+    Intent("weather_explicit", re.compile(r"(?:what(?:'s| is) (?:the )?)?weather (?:in|for|at) (.+)"),
+           lambda m: get_weather(m.group(1))),
+    Intent("weather_general", re.compile(r"^(?:what(?:'s| is) (?:the )?)?weather(?: today| outside)?|weather forecast|today(?:'s)? weather|how(?:'s| is) the weather$"),
+           lambda m: get_weather("")),
 
     Intent("spotify_search_on", re.compile(r"search (.+?) on spotify"),
            lambda m: search_spotify(m.group(1))),

@@ -68,3 +68,15 @@ def test_unrecognized_command_falls_to_llm():
     with patch("intents.router.ask_llm", return_value="ok") as mock_llm:
         route("do a backflip")
     mock_llm.assert_called_once()
+
+
+def test_youtube_open_and_play():
+    with patch("intents.rules.play_youtube", return_value={"speech": "ok"}) as mock_play:
+        route("open youtube and play hanuman chalisa")
+    mock_play.assert_called_once_with("hanuman chalisa")
+
+
+def test_weather_route():
+    with patch("intents.rules.get_weather", return_value={"speech": "ok"}) as mock_weather:
+        route("what is the weather in tokyo")
+    mock_weather.assert_called_once_with("tokyo")

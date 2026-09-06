@@ -84,80 +84,88 @@ def parse_whatsapp_command(text: str) -> tuple[str, str] | None:
     return None
 
 
-def activate_whatsapp() -> bool:
-    """Ensures WhatsApp Desktop is launched, restored from tray/minimized, and brought to foreground."""
-    try:
-        os.startfile("whatsapp://")
-    except Exception as e:
-        log.warning("Could not launch whatsapp:// URI: %s", e)
-
-    time.sleep(0.6)
-
-    found_hwnd = None
-
-    def cb(hwnd, _):
-        nonlocal found_hwnd
+def get_whatsapp_hwnd():
+    """Finds the WhatsApp Desktop window handle if it exists."""
+    found_hwnds = []
+    def cb(h, _):
         try:
             import win32gui
-            if win32gui.IsWindowVisible(hwnd):
-                t = win32gui.GetWindowText(hwnd)
-                if t and "whatsapp" in t.lower() and "gdi+" not in t.lower():
-                    found_hwnd = hwnd
+            t = win32gui.GetWindowText(h)
+            if "whatsapp" in t.lower() and "gdi+" not in t.lower():
+                found_hwnds.append(h)
         except Exception:
             pass
-
     try:
-        import win32gui
-        win32gui.EnumWindows(cb, None)
+        import win32gui, win32service, win32con
+        hdesk = win32service.OpenDesktop("Default", 0, False, win32con.GENERIC_ALL)
+        win32gui.EnumDesktopWindows(hdesk, cb, None)
     except Exception:
-        pass
-
-    if not found_hwnd:
         try:
             import win32gui
-            import win32service
-            import win32con
-            hdesk = win32service.OpenDesktop("Default", 0, False, win32con.GENERIC_ALL)
-            win32gui.EnumDesktopWindows(hdesk, cb, None)
+            win32gui.EnumWindows(cb, None)
         except Exception:
             pass
+    return found_hwnds[0] if found_hwnds else None
 
-    if found_hwnd:
+
+def activate_whatsapp() -> bool:
+    """Brings WhatsApp to foreground. Only launches whatsapp:// if WhatsApp is not running."""
+    hwnd = get_whatsapp_hwnd()
+    if not hwnd:
         try:
-            import win32gui
-            import win32con
-            import win32process
-            import win32api
+            os.startfile("whatsapp://")
+            time.sleep(1.5)
+            hwnd = get_whatsapp_hwnd()
+        except Exception as e:
+            log.warning("Could not launch whatsapp://: %s", e)
+
+    if hwnd:
+        try:
+            import win32gui, win32process, win32api, win32con
             user32 = ctypes.windll.user32
             fore_hwnd = win32gui.GetForegroundWindow()
             cur_tid = win32api.GetCurrentThreadId()
             fore_tid, _ = win32process.GetWindowThreadProcessId(fore_hwnd)
             user32.AttachThreadInput(fore_tid, cur_tid, True)
             try:
-                if win32gui.IsIconic(found_hwnd):
-                    win32gui.ShowWindow(found_hwnd, win32con.SW_RESTORE)
+                if win32gui.IsIconic(hwnd):
+                    win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
                 else:
-                    win32gui.ShowWindow(found_hwnd, win32con.SW_SHOW)
-                win32gui.SetForegroundWindow(found_hwnd)
-                win32gui.BringWindowToTop(found_hwnd)
+                    win32gui.ShowWindow(hwnd, win32con.SW_SHOW)
+                win32gui.SetForegroundWindow(hwnd)
+                win32gui.BringWindowToTop(hwnd)
             finally:
                 user32.AttachThreadInput(fore_tid, cur_tid, False)
             return True
         except Exception as e:
-            log.warning("Error forcing foreground on WhatsApp window: %s", e)
-
-    # Fallback using pygetwindow
-    try:
-        import pygetwindow as gw
-        for w in gw.getWindowsWithTitle("WhatsApp"):
-            if w.isMinimized:
-                w.restore()
-            w.activate()
-            return True
-    except Exception:
-        pass
+            log.warning("Error focusing WhatsApp window: %s", e)
 
     return False
+
+
+def _get_active_chat_recipient() -> str | None:
+    """Inspects WhatsApp UI Automation tree to identify the active chat composer."""
+    try:
+        import comtypes.client
+        mod = comtypes.client.GetModule("UIAutomationCore.dll")
+        uia = comtypes.client.CreateObject(mod.CUIAutomation)
+
+        hwnd = get_whatsapp_hwnd()
+        if not hwnd:
+            return None
+
+        elem = uia.ElementFromHandle(hwnd)
+        # Fast query for Edit controls only (avoid scanning entire 30,000 element tree)
+        cond = uia.CreatePropertyCondition(mod.UIA_ControlTypePropertyId, 50004)
+        elems = elem.FindAll(mod.TreeScope_Descendants, cond)
+        for i in range(elems.Length):
+            el = elems.GetElement(i)
+            name = el.CurrentName or ""
+            if "type a message to" in name.lower():
+                return name
+    except Exception:
+        pass
+    return None
 
 
 def send_whatsapp(recipient: str, message: str) -> dict:
@@ -197,16 +205,37 @@ def send_whatsapp(recipient: str, message: str) -> dict:
         try:
             import pyautogui
             import pyperclip
+            import win32gui
+
+            pyautogui.FAILSAFE = False
 
             if phone:
                 # Path A: Phone number is known - direct protocol send
                 os.startfile(uri)
                 log.info("Dispatched WhatsApp URI for %s: %s", target_label, uri)
-                time.sleep(1.8)
+
+                # Wait 3.5 seconds for WhatsApp to fully load the chat and populate the message box
+                time.sleep(3.5)
                 activate_whatsapp()
-                time.sleep(0.3)
+                time.sleep(0.4)
+
+                # Click inside message composer to guarantee keyboard focus
+                hwnd = get_whatsapp_hwnd()
+                if hwnd:
+                    try:
+                        rect = win32gui.GetWindowRect(hwnd)
+                        # Click inside the composer area (bottom right, 100px from right, 40px from bottom)
+                        pyautogui.click(rect[2] - 100, rect[3] - 40)
+                        time.sleep(0.2)
+                    except Exception:
+                        pass
+
+                # Press Enter to send the populated message
+                pyautogui.press("enter")
+                time.sleep(0.4)
                 pyautogui.press("enter")
                 log.info("Pressed enter to send WhatsApp to %s", target_label)
+
             else:
                 # Path B: Contact name only - UI search & keystroke automation
                 log.info("Executing desktop UI contact search and send for %s", recip_clean)
@@ -215,31 +244,64 @@ def send_whatsapp(recipient: str, message: str) -> dict:
 
                 # Clear any existing search or popup
                 pyautogui.press("escape")
-                time.sleep(0.1)
+                time.sleep(0.15)
                 pyautogui.press("escape")
-                time.sleep(0.2)
+                time.sleep(0.25)
 
-                # Open search box (Ctrl+F)
+                # Open search box using Ctrl+F
                 pyautogui.hotkey("ctrl", "f")
                 time.sleep(0.3)
+                pyautogui.hotkey("ctrl", "a")
+                pyautogui.press("backspace")
+                time.sleep(0.1)
 
                 # Type contact name via clipboard
                 pyperclip.copy(recip_clean)
                 pyautogui.hotkey("ctrl", "v")
-                time.sleep(0.9)  # Allow WhatsApp to filter contacts
 
-                # Select first matching contact
-                pyautogui.press("down")
-                time.sleep(0.2)
-                pyautogui.press("enter")  # Opens chat and focuses message composer
-                time.sleep(0.6)
+                # Wait 3.5s for WhatsApp local SQLite query to populate the filtered contact
+                log.info("Waiting 3.5s for WhatsApp to filter contacts for %r...", recip_clean)
+                time.sleep(3.5)
 
-                # Paste message into composer and send
-                pyperclip.copy(msg_clean)
-                pyautogui.hotkey("ctrl", "v")
-                time.sleep(0.3)
-                pyautogui.press("enter")  # Send message
-                log.info("Sent WhatsApp message to %s via desktop UI automation", recip_clean)
+                # DO NOT press Down! Pressing Down skips to the next person!
+                # In WhatsApp Desktop, pressing Enter directly in the search box opens the top match!
+                pyautogui.press("enter")
+                log.info("Pressed enter to open searched contact %r", recip_clean)
+                time.sleep(1.2)
+
+                # Safety check: Verify we did NOT select Mummy by mistake
+                is_safe = True
+                try:
+                    active_comp = _get_active_chat_recipient()
+                    if active_comp:
+                        log.info("Active WhatsApp composer: %r", active_comp)
+                        if "mummy" in active_comp.lower() and "mummy" not in recip_lower:
+                            log.error("SAFETY ABORT: Active chat is Mummy, but requested recipient was %r!", recip_clean)
+                            is_safe = False
+                except Exception as err:
+                    log.warning("Could not verify active composer: %s", err)
+
+                if is_safe:
+                    # Focus composer, paste message and send
+                    hwnd = get_whatsapp_hwnd()
+                    if hwnd:
+                        try:
+                            rect = win32gui.GetWindowRect(hwnd)
+                            pyautogui.click(rect[2] - 100, rect[3] - 40)
+                            time.sleep(0.2)
+                        except Exception:
+                            pass
+
+                    pyperclip.copy(msg_clean)
+                    pyautogui.hotkey("ctrl", "v")
+                    time.sleep(0.4)
+                    pyautogui.press("enter")
+                    time.sleep(0.4)
+                    pyautogui.press("enter")
+                    log.info("Sent WhatsApp message to %s via desktop UI automation", recip_clean)
+                else:
+                    pyautogui.press("escape")
+                    log.warning("Message dispatch cancelled to protect user privacy.")
 
         except Exception as e:
             log.warning("WhatsApp desktop automation failed, falling back to Web: %s", e)

@@ -18,6 +18,8 @@ from actions.web import (
 )
 from actions.weather import get_weather
 from actions.news import get_news
+from actions.math_engine import solve_math
+from actions.whatsapp import send_whatsapp
 from actions.system import (
     volume_up, volume_down, set_volume, toggle_mute, play_pause, hold_pause,
     next_track, previous_track, lock_screen,
@@ -42,6 +44,8 @@ JARVIS_SYSTEM_PROMPT = (
     "- play_spotify(query)\n"
     "- get_weather(location)\n"
     "- get_news(topic)\n"
+    "- solve_math(query)\n"
+    "- send_whatsapp(recipient, message)\n"
     "- volume_up()\n"
     "- volume_down()\n"
     "- set_volume(percent)\n"
@@ -69,6 +73,8 @@ ACTION_MAP = {
     "play_spotify": play_spotify,
     "get_weather": get_weather,
     "get_news": get_news,
+    "solve_math": solve_math,
+    "send_whatsapp": send_whatsapp,
     "volume_up": volume_up,
     "volume_down": volume_down,
     "set_volume": set_volume,
@@ -129,7 +135,22 @@ def ask_llm(text: str):
         topic = m_topic.group(1).lower() if m_topic else "tech"
         return get_news(topic)
 
-    # 3. Check instant conversational cache first for zero-latency greetings
+    # 3. Instant check: WhatsApp messaging
+    if "whatsapp" in t_lower and any(w in t_lower for w in ["saying", "message", "send", "tell"]):
+        m_wa = re.search(r"(?:send (?:a )?whatsapp (?:message )?to|whatsapp)\s+([a-zA-Z0-9_+]+)\s+(?:saying|that|with message)\s+(.+)", text, re.I)
+        if m_wa:
+            return send_whatsapp(m_wa.group(1).strip(), m_wa.group(2).strip())
+
+    # 4. Instant check: Math and calculation
+    is_math = (
+        any(k in t_lower for k in ["derivative of", "integral of", "differentiate", "integrate", "d/dx"]) or
+        bool(re.search(r"\b\d+(?:\.\d+)?\s*(?:%|percent)\s+of\s+[\d,.]+", text)) or
+        (any(k in t_lower for k in ["calculate", "solve", "evaluate", "compute"]) and any(op in text for op in ["+", "-", "*", "/", "=", "^", "sqrt", "sin", "cos", "x"]))
+    )
+    if is_math:
+        return solve_math(text)
+
+    # 5. Check instant conversational cache first for zero-latency greetings
     quick = _quick_conversational_reply(text)
     if quick:
         _conversation_history.append({"role": "user", "content": text})
@@ -187,6 +208,18 @@ def ask_llm(text: str):
                 return res
             if any(k in t_lower for k in ["news", "headline", "game", "gaming", "tech", "event", "happening"]):
                 res = get_news("gaming" if any(g in t_lower for g in ["game", "gaming"]) else "tech")
+                _conversation_history.append({"role": "user", "content": text})
+                _conversation_history.append({"role": "assistant", "content": res.get("speech", "")})
+                return res
+            if "whatsapp" in t_lower:
+                m_wa = re.search(r"(?:to|whatsapp)\s+([a-zA-Z0-9_+]+)\s+(?:saying|that)\s+(.+)", text, re.I)
+                if m_wa:
+                    res = send_whatsapp(m_wa.group(1).strip(), m_wa.group(2).strip())
+                    _conversation_history.append({"role": "user", "content": text})
+                    _conversation_history.append({"role": "assistant", "content": res.get("speech", "")})
+                    return res
+            if any(k in t_lower for k in ["derivative", "integral", "solve", "calculate", "% of"]):
+                res = solve_math(text)
                 _conversation_history.append({"role": "user", "content": text})
                 _conversation_history.append({"role": "assistant", "content": res.get("speech", "")})
                 return res

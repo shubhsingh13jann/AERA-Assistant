@@ -13,3 +13,4 @@ pycaw
 comtypes
 edge-tts
 pygame
+sympy

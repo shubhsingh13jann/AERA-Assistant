@@ -22,6 +22,8 @@ from actions.web import (
 )
 from actions.weather import get_weather
 from actions.news import get_news
+from actions.math_engine import solve_math
+from actions.whatsapp import send_whatsapp
 from actions.system import (
     volume_up, volume_down, set_volume, toggle_mute, play_pause, hold_pause,
     next_track, previous_track, lock_screen,
@@ -68,6 +70,17 @@ INTENTS = [
            lambda m: get_weather(m.group(1).strip())),
     Intent("weather_general", re.compile(r"\b(?:weather|temperature|temp|forecast|climate|rain|raining|how hot|how cold|hot outside|cold outside|is it hot|is it cold|degrees outside|sunny outside)\b", re.I),
            lambda m: get_weather("")),
+    # Automated WhatsApp messaging
+    Intent("whatsapp_send", re.compile(r"(?:send (?:a )?whatsapp (?:message )?to|whatsapp)\s+([a-zA-Z0-9_+]+)\s+(?:saying|that|with message)\s+(.+)", re.I),
+           lambda m: send_whatsapp(m.group(1).strip(), m.group(2).strip())),
+
+    # Advanced Mathematical Reasoning & Symbolic Engine
+    Intent("math_calculus", re.compile(r"\b(?:derivative of|integral of|differentiate|integrate|d/dx)\s+(.+)", re.I),
+           lambda m: solve_math(m.group(0))),
+    Intent("math_percent", re.compile(r"\b\d+(?:\.\d+)?\s*(?:%|percent)\s+of\s+[\d,.]+", re.I),
+           lambda m: solve_math(m.group(0))),
+    Intent("math_solve_explicit", re.compile(r"^(?:calculate|solve|evaluate|compute)\s+(.+)$", re.I),
+           lambda m: solve_math(m.group(1))),
 
     Intent("spotify_search_on", re.compile(r"search (.+?) on spotify"),
            lambda m: search_spotify(m.group(1))),

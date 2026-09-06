@@ -138,3 +138,21 @@ def test_llm_refusal_circuit_breaker():
     # Circuit breaker must intercept the canned refusal and return live news
     assert result == {"speech": "Live news fetched"}
     mock_get_news.assert_called_once()
+
+
+def test_math_percentage_route():
+    with patch("intents.rules.solve_math", return_value={"speech": "ok"}) as mock_math:
+        route("what is 45% of 18500")
+    mock_math.assert_called_once()
+
+
+def test_math_calculus_route():
+    with patch("intents.rules.solve_math", return_value={"speech": "ok"}) as mock_math:
+        route("derivative of x^3 * sin(x)")
+    mock_math.assert_called_once()
+
+
+def test_whatsapp_route():
+    with patch("intents.rules.send_whatsapp", return_value={"speech": "ok"}) as mock_wa:
+        route("send a whatsapp message to Rahul saying I will reach in 10 minutes")
+    mock_wa.assert_called_once_with("rahul", "i will reach in 10 minutes")

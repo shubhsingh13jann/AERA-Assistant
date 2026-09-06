@@ -7,6 +7,13 @@ APPS = {
     "netflix": r"shell:AppsFolder\4DF9E0F8.Netflix_mcm4njqhnhss8!Netflix.App",
 }
 
+# Frequent WhatsApp contacts: Name (lowercase) -> Phone number with country code
+# e.g., "rahul": "+919876543210"
+CONTACTS = {
+    "me": "",
+    "myself": "",
+}
+
 # Built-in openWakeWord model used by the assistant.
 WAKE_WORD = "hey_jarvis"
 # The generic built-in Hey Jarvis model is a little conservative for the

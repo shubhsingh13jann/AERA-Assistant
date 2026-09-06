@@ -14,7 +14,7 @@ import {
   Check,
   Sparkles,
 } from 'lucide-react';
-import { WeatherCard, NewsHeroCard, MediaCard } from './MultimodalCards';
+import { WeatherCard, NewsHeroCard, MediaCard, MathCard, WhatsAppCard } from './MultimodalCards';
 
 export const ConversationPanel = () => {
   const { messages, addConversationMessage, orbState, setOrbState } = useNexusStore();
@@ -232,6 +232,12 @@ export const ConversationPanel = () => {
                   )}
                   {msg.card && msg.card.type === 'media' && (
                     <MediaCard data={msg.card.data} />
+                  )}
+                  {msg.card && msg.card.type === 'math' && (
+                    <MathCard data={msg.card.data} />
+                  )}
+                  {msg.card && msg.card.type === 'whatsapp' && (
+                    <WhatsAppCard data={msg.card.data} />
                   )}
                 </div>
               </div>

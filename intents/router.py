@@ -39,12 +39,12 @@ def route(text: str) -> str:
         return get_news(topic)
 
     # Deterministic WhatsApp interceptor
-    if "whatsapp" in text and any(w in text for w in ["saying", "message", "send", "tell"]):
-        m_wa = re.search(r"(?:send (?:a )?whatsapp (?:message )?to|whatsapp)\s+([a-zA-Z0-9_+]+)\s+(?:saying|that|with message)\s+(.+)", text, re.I)
-        if m_wa:
-            log.info("Directly intercepting WhatsApp query before LLM: %r", text)
-            from actions.whatsapp import send_whatsapp
-            return send_whatsapp(m_wa.group(1).strip(), m_wa.group(2).strip())
+    if "whatsapp" in text or "whats app" in text:
+        from actions.whatsapp import parse_whatsapp_command, send_whatsapp
+        parsed_wa = parse_whatsapp_command(text)
+        if parsed_wa:
+            log.info("Directly intercepting WhatsApp query before LLM: %r -> %r", text, parsed_wa)
+            return send_whatsapp(parsed_wa[0], parsed_wa[1])
 
     # Deterministic Math interceptor
     is_math = (

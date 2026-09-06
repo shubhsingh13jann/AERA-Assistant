@@ -156,3 +156,34 @@ def test_whatsapp_route():
     with patch("intents.rules.send_whatsapp", return_value={"speech": "ok"}) as mock_wa:
         route("send a whatsapp message to Rahul saying I will reach in 10 minutes")
     mock_wa.assert_called_once_with("rahul", "i will reach in 10 minutes")
+
+
+def test_whatsapp_multiword_contact():
+    with patch("intents.rules.send_whatsapp", return_value={"speech": "ok"}) as mock_wa:
+        route("Send a WhatsApp message to Hira Dadu saying hello good evening")
+    mock_wa.assert_called_once_with("hira dadu", "hello good evening")
+
+
+def test_whatsapp_swarit_long_message():
+    with patch("intents.rules.send_whatsapp", return_value={"speech": "ok"}) as mock_wa:
+        route("Send a WhatsApp message to Swarit saying This message is send with the help of Jarvis automation")
+    mock_wa.assert_called_once_with("swarit", "this message is send with the help of jarvis automation")
+
+
+def test_whatsapp_direct_no_saying():
+    with patch("intents.rules.send_whatsapp", return_value={"speech": "ok"}) as mock_wa:
+        route("Send whatsapp message to papa Hi")
+    mock_wa.assert_called_once_with("papa", "hi")
+
+
+def test_whatsapp_open_and_send():
+    with patch("intents.rules.send_whatsapp", return_value={"speech": "ok"}) as mock_wa:
+        route("open whatsapp and send message to papa saying I will reach in 10 minutes")
+    mock_wa.assert_called_once_with("papa", "i will reach in 10 minutes")
+
+
+def test_whatsapp_direct_cmd():
+    with patch("intents.rules.send_whatsapp", return_value={"speech": "ok"}) as mock_wa:
+        route("whatsapp swarit hello")
+    mock_wa.assert_called_once_with("swarit", "hello")
+

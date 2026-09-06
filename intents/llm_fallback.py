@@ -19,7 +19,7 @@ from actions.web import (
 from actions.weather import get_weather
 from actions.news import get_news
 from actions.math_engine import solve_math
-from actions.whatsapp import send_whatsapp
+from actions.whatsapp import send_whatsapp, parse_whatsapp_command
 from actions.system import (
     volume_up, volume_down, set_volume, toggle_mute, play_pause, hold_pause,
     next_track, previous_track, lock_screen,
@@ -136,10 +136,10 @@ def ask_llm(text: str):
         return get_news(topic)
 
     # 3. Instant check: WhatsApp messaging
-    if "whatsapp" in t_lower and any(w in t_lower for w in ["saying", "message", "send", "tell"]):
-        m_wa = re.search(r"(?:send (?:a )?whatsapp (?:message )?to|whatsapp)\s+([a-zA-Z0-9_+]+)\s+(?:saying|that|with message)\s+(.+)", text, re.I)
-        if m_wa:
-            return send_whatsapp(m_wa.group(1).strip(), m_wa.group(2).strip())
+    if "whatsapp" in t_lower or "whats app" in t_lower:
+        parsed_wa = parse_whatsapp_command(text)
+        if parsed_wa:
+            return send_whatsapp(parsed_wa[0], parsed_wa[1])
 
     # 4. Instant check: Math and calculation
     is_math = (
@@ -179,7 +179,21 @@ def ask_llm(text: str):
             action_fn = ACTION_MAP.get(func_name)
             if action_fn:
                 log.info("Dispatching agent action: %s(%r)", func_name, arg)
-                if arg:
+                # Intercept accidental open_app("wa_launcher") or open_app("whatsapp") if user asked to send a message
+                if func_name == "open_app" and any(k in arg.lower() for k in ["wa", "whatsapp", "launcher"]) and any(w in t_lower for w in ["send", "saying", "message"]):
+                    parsed_wa = parse_whatsapp_command(text)
+                    if parsed_wa:
+                        return send_whatsapp(parsed_wa[0], parsed_wa[1])
+
+                if func_name == "send_whatsapp":
+                    parts = [p.strip().strip("'\"") for p in arg.split(",", 1)]
+                    if len(parts) == 2:
+                        result = action_fn(parts[0], parts[1])
+                    elif len(parts) == 1:
+                        result = action_fn(parts[0], "Hello from JARVIS")
+                    else:
+                        result = action_fn("Recipient", "Hello")
+                elif arg:
                     result = action_fn(arg.strip())
                 else:
                     result = action_fn()
@@ -211,10 +225,10 @@ def ask_llm(text: str):
                 _conversation_history.append({"role": "user", "content": text})
                 _conversation_history.append({"role": "assistant", "content": res.get("speech", "")})
                 return res
-            if "whatsapp" in t_lower:
-                m_wa = re.search(r"(?:to|whatsapp)\s+([a-zA-Z0-9_+]+)\s+(?:saying|that)\s+(.+)", text, re.I)
-                if m_wa:
-                    res = send_whatsapp(m_wa.group(1).strip(), m_wa.group(2).strip())
+            if "whatsapp" in t_lower or "whats app" in t_lower:
+                parsed_wa = parse_whatsapp_command(text)
+                if parsed_wa:
+                    res = send_whatsapp(parsed_wa[0], parsed_wa[1])
                     _conversation_history.append({"role": "user", "content": text})
                     _conversation_history.append({"role": "assistant", "content": res.get("speech", "")})
                     return res

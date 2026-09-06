@@ -71,8 +71,18 @@ INTENTS = [
     Intent("weather_general", re.compile(r"\b(?:weather|temperature|temp|forecast|climate|rain|raining|how hot|how cold|hot outside|cold outside|is it hot|is it cold|degrees outside|sunny outside)\b", re.I),
            lambda m: get_weather("")),
     # Automated WhatsApp messaging
-    Intent("whatsapp_send", re.compile(r"(?:send (?:a )?whatsapp (?:message )?to|whatsapp)\s+([a-zA-Z0-9_+]+)\s+(?:saying|that|with message)\s+(.+)", re.I),
-           lambda m: send_whatsapp(m.group(1).strip(), m.group(2).strip())),
+    Intent("whatsapp_send_explicit", re.compile(
+        r"(?:(?:open\s+(?:whats\s*app|whatsapp)\s+and\s+)?send\s+(?:a\s+)?(?:message\s+(?:on|via)\s+)?(?:whats\s*app|whatsapp)\s+(?:message\s+)?to|open\s+(?:whats\s*app|whatsapp)\s+and\s+send\s+(?:a\s+)?(?:message\s+)?to|whats\s*app)\s+([^,:]+?)\s*(?::|saying|that|with message|telling them|asking)\s+(.+)",
+        re.I
+    ), lambda m: send_whatsapp(m.group(1).strip(), m.group(2).strip())),
+    Intent("whatsapp_send_direct", re.compile(
+        r"(?:(?:open\s+(?:whats\s*app|whatsapp)\s+and\s+)?send\s+(?:a\s+)?(?:message\s+(?:on|via)\s+)?(?:whats\s*app|whatsapp)\s+(?:message\s+)?to|open\s+(?:whats\s*app|whatsapp)\s+and\s+send\s+(?:a\s+)?(?:message\s+)?to)\s+([a-zA-Z0-9_+]+)\s+(.+)",
+        re.I
+    ), lambda m: send_whatsapp(m.group(1).strip(), m.group(2).strip())),
+    Intent("whatsapp_direct_cmd", re.compile(
+        r"^whats\s*app\s+(?:to\s+)?([a-zA-Z0-9_+]+)\s+(.+)$",
+        re.I
+    ), lambda m: send_whatsapp(m.group(1).strip(), m.group(2).strip())),
 
     # Advanced Mathematical Reasoning & Symbolic Engine
     Intent("math_calculus", re.compile(r"\b(?:derivative of|integral of|differentiate|integrate|d/dx)\s+(.+)", re.I),

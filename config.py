@@ -2,6 +2,7 @@
 
 APPS = {
     "whatsapp": r"shell:AppsFolder\5319275A.WhatsAppDesktop_cv1g1gvanyjgm!App",
+    "wa_launcher": r"shell:AppsFolder\5319275A.WhatsAppDesktop_cv1g1gvanyjgm!App",
     "chrome": r"C:\Program Files\Google\Chrome\Application\chrome.exe",
     "vscode": r"D:\Microsoft VS Code\Code.exe",
     "netflix": r"shell:AppsFolder\4DF9E0F8.Netflix_mcm4njqhnhss8!Netflix.App",
@@ -59,4 +60,10 @@ APP_ALIASES = {
     "cloude": "claude",
     "cloud": "claude",
     "vs code": "visual studio code",
+    "whats app": "whatsapp",
+    "whats app desktop": "whatsapp",
+    "whatsapp desktop": "whatsapp",
+    "wa launcher": "whatsapp",
+    "wa_launcher": "whatsapp",
+    "wa": "whatsapp",
 }

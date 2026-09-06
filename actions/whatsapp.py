@@ -214,94 +214,51 @@ def send_whatsapp(recipient: str, message: str) -> dict:
                 os.startfile(uri)
                 log.info("Dispatched WhatsApp URI for %s: %s", target_label, uri)
 
-                # Wait 3.5 seconds for WhatsApp to fully load the chat and populate the message box
-                time.sleep(3.5)
+                # Wait 1.8s for WhatsApp to open the chat and populate the message box
+                time.sleep(1.8)
                 activate_whatsapp()
-                time.sleep(0.4)
-
-                # Click inside message composer to guarantee keyboard focus
-                hwnd = get_whatsapp_hwnd()
-                if hwnd:
-                    try:
-                        rect = win32gui.GetWindowRect(hwnd)
-                        # Click inside the composer area (bottom right, 100px from right, 40px from bottom)
-                        pyautogui.click(rect[2] - 100, rect[3] - 40)
-                        time.sleep(0.2)
-                    except Exception:
-                        pass
+                time.sleep(0.2)
 
                 # Press Enter to send the populated message
                 pyautogui.press("enter")
-                time.sleep(0.4)
+                time.sleep(0.25)
                 pyautogui.press("enter")
                 log.info("Pressed enter to send WhatsApp to %s", target_label)
 
             else:
                 # Path B: Contact name only - UI search & keystroke automation
-                log.info("Executing desktop UI contact search and send for %s", recip_clean)
+                log.info("Executing fast desktop UI contact search and send for %s", recip_clean)
                 activate_whatsapp()
-                time.sleep(0.8)
+                time.sleep(0.35)
 
                 # Clear any existing search or popup
                 pyautogui.press("escape")
-                time.sleep(0.15)
-                pyautogui.press("escape")
-                time.sleep(0.25)
+                time.sleep(0.1)
 
-                # Open search box using Ctrl+F
+                # Open search box using Ctrl+F and clear it
                 pyautogui.hotkey("ctrl", "f")
-                time.sleep(0.3)
+                time.sleep(0.15)
                 pyautogui.hotkey("ctrl", "a")
                 pyautogui.press("backspace")
-                time.sleep(0.1)
 
                 # Type contact name via clipboard
                 pyperclip.copy(recip_clean)
                 pyautogui.hotkey("ctrl", "v")
 
-                # Wait 3.5s for WhatsApp local SQLite query to populate the filtered contact
-                log.info("Waiting 3.5s for WhatsApp to filter contacts for %r...", recip_clean)
-                time.sleep(3.5)
+                # Wait 1.3s for WhatsApp to filter and highlight the searched contact
+                time.sleep(1.3)
 
-                # DO NOT press Down! Pressing Down skips to the next person!
-                # In WhatsApp Desktop, pressing Enter directly in the search box opens the top match!
+                # Press Enter directly in search box (opens the top matching contact)
                 pyautogui.press("enter")
                 log.info("Pressed enter to open searched contact %r", recip_clean)
-                time.sleep(1.2)
+                time.sleep(0.4)
 
-                # Safety check: Verify we did NOT select Mummy by mistake
-                is_safe = True
-                try:
-                    active_comp = _get_active_chat_recipient()
-                    if active_comp:
-                        log.info("Active WhatsApp composer: %r", active_comp)
-                        if "mummy" in active_comp.lower() and "mummy" not in recip_lower:
-                            log.error("SAFETY ABORT: Active chat is Mummy, but requested recipient was %r!", recip_clean)
-                            is_safe = False
-                except Exception as err:
-                    log.warning("Could not verify active composer: %s", err)
-
-                if is_safe:
-                    # Focus composer, paste message and send
-                    hwnd = get_whatsapp_hwnd()
-                    if hwnd:
-                        try:
-                            rect = win32gui.GetWindowRect(hwnd)
-                            pyautogui.click(rect[2] - 100, rect[3] - 40)
-                            time.sleep(0.2)
-                        except Exception:
-                            pass
-
-                    pyperclip.copy(msg_clean)
-                    pyautogui.hotkey("ctrl", "v")
-                    time.sleep(0.4)
-                    pyautogui.press("enter")
-                    time.sleep(0.4)
-                    pyautogui.press("enter")
-                    log.info("Sent WhatsApp message to %s via desktop UI automation", recip_clean)
-                else:
-                    pyautogui.press("escape")
-                    log.warning("Message dispatch cancelled to protect user privacy.")
+                # Paste message directly into the composer (which is already focused) and send
+                pyperclip.copy(msg_clean)
+                pyautogui.hotkey("ctrl", "v")
+                time.sleep(0.2)
+                pyautogui.press("enter")
+                log.info("Sent WhatsApp message to %s via desktop UI automation", recip_clean)
 
         except Exception as e:
             log.warning("WhatsApp desktop automation failed, falling back to Web: %s", e)
